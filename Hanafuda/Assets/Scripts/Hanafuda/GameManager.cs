@@ -10,15 +10,12 @@ public class GameManager : MonoBehaviour {
     [SerializeField]
     private FieldManager fieldManager;
 
-    //ゲーム中のステータス
+    //ゲーム全体の状態
     public STATE state;
     public enum STATE {
         READY,
-        DECK_SHUFLE,
-        CARD_HAND_OUT,
-        GAME,
+        HANAFUDA,
         PAUSE,
-        RESULT
     }
 
     [SerializeField]
@@ -40,36 +37,17 @@ public class GameManager : MonoBehaviour {
         switch (state) {
             case STATE.READY:
                 if (!onceWaitRaady) {
-                    Debug.Log("STATE_READY");
+                    Debug.Log("GameManager STATE_READY");
                     onceWaitRaady = true;
-                    StartCoroutine("WaitNextState", STATE.DECK_SHUFLE);
-                }
-                //readyTime += Time.deltaTime;
-                //if (readyTime > 1.0f) {
-                //    state = STATE.DECK_SHUFLE;
-                //}
-                break;
-
-            case STATE.DECK_SHUFLE:
-                Debug.Log("STATE_DECK_SHUFLE");
-                //fieldManager.DeckShufle(cardManager.GetCardList());
-                fieldManager.DeckShufle();
-                state = STATE.CARD_HAND_OUT;
-                break;
-
-            case STATE.CARD_HAND_OUT:
-                Debug.Log("CARD_HAND_OUT");
-                if (!fieldManager.isCardHandOut) {
-                    StartCoroutine("WaitNextState", GameManager.STATE.GAME);
+                    StartCoroutine("WaitNextState", STATE.HANAFUDA);
                 }
                 break;
 
-            case STATE.GAME:
+            case STATE.HANAFUDA:
                 break;
             case STATE.PAUSE:
                 break;
-            case STATE.RESULT:
-                break;
+
         }
 	}
 

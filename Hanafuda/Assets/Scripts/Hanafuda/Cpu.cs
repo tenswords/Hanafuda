@@ -21,6 +21,16 @@ public class Cpu : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
+        switch (fieldManager.state) {
+            case FieldManager.STATE.CARD_HAND_OUT: CardHandOut(); break;
+        }
+    }
+
+    /// <summary>
+    /// 配られているときの処理
+    /// </summary>
+    private void CardHandOut() {
+
         for (int i = 0; i < hand.Count; i++) {
 
             hand[i].transform.position = Vector3.MoveTowards(hand[i].transform.position,
@@ -32,8 +42,8 @@ public class Cpu : MonoBehaviour {
             var distanceLeap = Mathf.Lerp(1f, 0f, distance / handCardTargetMaxDistance_Dic[hand[i]]);
             hand[i].transform.localScale = cardScale * distanceLeap;
         }
-    }
 
+    }
     /// <summary>
     /// ゲーム開始時の手札が追加される処理
     /// </summary>
@@ -49,6 +59,19 @@ public class Cpu : MonoBehaviour {
         card.transform.parent = transform;
     }
 
+    ///// <summary>
+    ///// ゲーム開始時の手札が指定されている座標まで全て移動しきっているかを取得
+    ///// </summary>
+    public bool GetIsHandOutMovement() {
+
+        foreach (var card in hand) {
+            if (card.transform.position != handCardTargePosition_Dic[card]) {
+                return false;
+            }
+        }
+        return true;
+
+    }
 
     /// <summary>
     /// 自分のターン時にカードを出す処理

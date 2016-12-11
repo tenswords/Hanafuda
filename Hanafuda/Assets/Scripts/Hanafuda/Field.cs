@@ -9,7 +9,7 @@ public class Field : MonoBehaviour {
 
     private Dictionary<GameObject, float> handCardTargetMaxDistance_Dic = new Dictionary<GameObject, float>();
     private Dictionary<GameObject, Vector3> handCardTargePosition_Dic = new Dictionary<GameObject, Vector3>();
-    private List<GameObject> fieldCard = new List<GameObject>();
+    public List<GameObject> fieldCard = new List<GameObject>();
 
     private Dictionary<int, bool> fieldCard_isPut = new Dictionary<int, bool>();
     private Dictionary<int, Vector3> fieldPosition = new Dictionary<int, Vector3>();
@@ -60,6 +60,16 @@ public class Field : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+        switch (fieldManager.state) {
+            case FieldManager.STATE.CARD_HAND_OUT: CardHandOut(); break;
+        }
+    }
+
+    /// <summary>
+    /// 配られているときの処理
+    /// </summary>
+    private void CardHandOut() {
+
         for (int i = 0; i < fieldCard.Count; i++) {
 
             fieldCard[i].transform.position = Vector3.MoveTowards(fieldCard[i].transform.position,
@@ -87,8 +97,12 @@ public class Field : MonoBehaviour {
                 }
             }
         }
+
     }
 
+    /// <summary>
+    /// ゲーム開始時の場に追加される処理
+    /// </summary>
     public void AddCard(GameObject card) {
 
         var pos = fieldPosition[fieldCard.Count];
@@ -98,5 +112,19 @@ public class Field : MonoBehaviour {
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
         handCardTargePosition_Dic.Add(card, pos);
         card.transform.parent = transform;
+    }
+
+    /// <summary>
+    /// ゲーム開始時の手札が指定されている座標まで全て移動しきっているかを取得
+    /// </summary>
+    public bool GetIsHandOutMovement() {
+
+        foreach (var card in fieldCard) {
+            if (card.transform.position != handCardTargePosition_Dic[card]) {
+                return false;
+            }
+        }
+        return true;
+
     }
 }
