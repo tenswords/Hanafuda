@@ -140,4 +140,10 @@ public class FieldManager : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// ターンが切り替わる時の初期化処理
+    /// </summary>
+    private void TurnChange() {
+
+    }
 }

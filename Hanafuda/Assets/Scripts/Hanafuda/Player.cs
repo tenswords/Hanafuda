@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TAG;
 
 public class Player : MonoBehaviour {
 
@@ -91,6 +92,7 @@ public class Player : MonoBehaviour {
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
         handCardTargePosition_Dic.Add(card,pos);
         card.transform.parent = transform;
+        card.tag = TagManager.TAG_PLAYER_HAND;
     }
 
     ///// <summary>
@@ -104,7 +106,6 @@ public class Player : MonoBehaviour {
             }
         }
         return true;
-
     }
 
     /// <summary>
@@ -129,15 +130,6 @@ public class Player : MonoBehaviour {
             }
 
         }
-    }
-
-    private void CardEffectAlfaPingPong(GameObject card){
-        var spriteRenderer = card.transform.GetChild(0).GetComponent<SpriteRenderer>();
-        //spriteRenderer.color; = Mathf.Lerp(0.8f, 0.2f, alfaTimer / MAXTIMER)
-        var alfaColor = spriteRenderer.color;
-        //alfaColor.a = 
-        //        Color.Lerp(spriteRenderer.color,);
-        spriteRenderer.color = Color.Lerp(spriteRenderer.color * CARD_EFFECT_MAX_ALFA, spriteRenderer.color * CARD_EFFECT_MIN_ALFA, Mathf.PingPong(Time.time, 1));
     }
 
     /// <summary>
