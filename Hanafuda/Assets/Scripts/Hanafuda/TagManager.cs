@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using System.Collections;
-
-namespace TAG { 
+﻿namespace TAG { 
     public class TagManager{
-        public const string TAG_PLAYER_HAND = "PlayerHand";
-        public const string TAG_CPU_HAND = "CPUHand";
+        public const string PLAYER_HAND_FORE = "PlayerHandFore";
+        public const string PLAYER_HAND = "PlayerHand";
+        public const string FIELD_CARD = "FieldCard";
+        public const string FIELD_SPACE = "FieldSpace";
+        public const string CPU_HAND = "CPUHand";
     }
 }

@@ -62,6 +62,4 @@ public class GameManager : MonoBehaviour {
     public void OnRoleListButton() {
         roleListCanvas.SetActive(true);
     }
-
-
 }

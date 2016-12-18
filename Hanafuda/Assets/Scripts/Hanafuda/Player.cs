@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using TAG;
 
 public class Player : MonoBehaviour {
 
+    [SerializeField]
+    private CardManager cardManager;
     [SerializeField]
     private FieldManager fieldManager;
     [SerializeField]
@@ -18,7 +19,10 @@ public class Player : MonoBehaviour {
     private Vector3 fieldFirstPosition = new Vector3(-6.7375f, -3.5f, 0.0f);
     private Vector3 cardScale = new Vector3(1.25f,1.25f,1.0f);
 
+    //手札のカードで場のカードを取れるカードリスト
     private Dictionary<GameObject, List<GameObject>> getCardList_Dic = new Dictionary<GameObject, List<GameObject>>();
+    private Dictionary<GameObject, List<GameObject>> nonGetCardList_Dic = new Dictionary<GameObject, List<GameObject>>();
+
     private bool onceGetCardList;
 
     private Color CARD_EFFECT_MAX_ALFA = new Color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -33,7 +37,8 @@ public class Player : MonoBehaviour {
     void Update() {
         switch (fieldManager.state) {
             case FieldManager.STATE.CARD_HAND_OUT: CardHandOut(); break;
-            case FieldManager.STATE.GAME: Game(); break;
+            case FieldManager.STATE.WAIT_SELECT_CARD: Game(); break;
+
         }
     }
 
@@ -78,9 +83,9 @@ public class Player : MonoBehaviour {
         }
     }
 
-    ///// <summary>
-    ///// ゲーム開始時の手札が追加される処理
-    ///// </summary>
+    /// <summary>
+    /// ゲーム開始時の手札が追加される処理
+    /// </summary>
     public void AddCard(GameObject card) {
 
         var pos = fieldFirstPosition;
@@ -92,12 +97,16 @@ public class Player : MonoBehaviour {
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
         handCardTargePosition_Dic.Add(card,pos);
         card.transform.parent = transform;
-        card.tag = TagManager.TAG_PLAYER_HAND;
+
+        //タグと描画順を変更
+        cardManager.SetCardTag(card, TAG.TagManager.PLAYER_HAND);
+        cardManager.SetCardSortingLayer(card,SortingLayer.SortingLayerManager.PLAYER_HAND);
+        cardManager.SetCardSortingLayer(card.transform.GetChild(0).gameObject, SortingLayer.SortingLayerManager.PLAYER_HAND);
     }
 
-    ///// <summary>
-    ///// ゲーム開始時の手札が指定されている座標まで全て移動しきっているかを取得
-    ///// </summary>
+    /// <summary>
+    /// ゲーム開始時の手札が指定されている座標まで全て移動しきっているかを取得
+    /// </summary>
     public bool GetIsHandOutMovement() {
 
         foreach (var card in hand) {
@@ -119,16 +128,8 @@ public class Player : MonoBehaviour {
             //まだ取得可能リストを取得していなかったら、取得する
             if (!onceGetCardList) {
                 onceGetCardList = true;
-                getCardList_Dic = GetCardList();
+                SetGetCardList();
             }
-            
-            foreach(var card in hand) {
-                if (getCardList_Dic.ContainsKey(card)) {
-                    
-                    
-                }
-            }
-
         }
     }
 
@@ -145,32 +146,63 @@ public class Player : MonoBehaviour {
     }
 
     /// <summary>
-    /// 自分のターン時に手札とフィールドのカードから同じ月（花）の取得可能リストを取得
+    /// 自分のターン時に手札と場のカードから同じ月（花）の取得可能リストと取得不可能リストを設定する
     /// </summary>
     /// <returns></returns>
-    public Dictionary<GameObject, List<GameObject>> GetCardList() {
-        Debug.Log("Player GetCardList");
-        var getCard_Dic = new Dictionary<GameObject, List<GameObject>>();
-        for(int i=0;i<hand.Count;i++) {
+    private void SetGetCardList() {
+
+        Debug.Log("Player SetGetCardList");
+        for (int i = 0; i < hand.Count; i++) {
             var myCard = hand[i].GetComponent<Card>();
 
             var getCardList = new List<GameObject>();
-            for (int j=0;j<field.fieldCard.Count;j++) {
+            var nonGetCardList = new List<GameObject>();
+            for (int j = 0; j < field.fieldCard.Count; j++) {
                 var fieldCard = field.fieldCard[j].GetComponent<Card>();
 
                 if (myCard.month == fieldCard.month) {
                     getCardList.Add(field.fieldCard[j]);
+                } else {
+                    nonGetCardList.Add(field.fieldCard[j]);
                 }
             }
 
             if (getCardList.Count > 0) {
-                getCard_Dic.Add(hand[i], getCardList);
+                getCardList_Dic.Add(hand[i], getCardList);
                 hand[i].transform.GetChild(0).gameObject.SetActive(true);
             }
-        }
 
-        return getCard_Dic;
+            if (nonGetCardList.Count > 0) {
+                nonGetCardList_Dic.Add(hand[i], nonGetCardList);
+            }
+        }
     }
 
 
+
+
+    /// <summary>
+    /// 指定したカードで場のカードを取れるカードリスト
+    /// </summary>
+    /// <returns></returns>
+    public List<GameObject> GetGetCardList_Dic(GameObject card) {
+        return getCardList_Dic[card];
+    }
+
+    /// <summary>
+    /// 指定したカードで場のカードを1枚以上取れるかどうかを取得(true:取れる false:取れない)
+    /// </summary>
+    /// <returns></returns>
+    public bool IsGetCard(GameObject card) {
+        return getCardList_Dic.ContainsKey(card);
+    }
+
+
+    /// <summary>
+    /// 指定したカードで場のカードを取れないカードリスト
+    /// </summary>
+    /// <returns></returns>
+    public List<GameObject> GetNonGetCardList_Dic(GameObject card) {
+        return nonGetCardList_Dic[card];
+    }
 }

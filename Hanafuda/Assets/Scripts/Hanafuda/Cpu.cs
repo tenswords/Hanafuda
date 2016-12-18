@@ -57,6 +57,7 @@ public class Cpu : MonoBehaviour {
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
         handCardTargePosition_Dic.Add(card, pos);
         card.transform.parent = transform;
+        
     }
 
     ///// <summary>

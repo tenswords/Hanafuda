@@ -6,6 +6,8 @@ public class Field : MonoBehaviour {
 
     [SerializeField]
     private FieldManager fieldManager;
+    [SerializeField]
+    private CardManager cardManager;
 
     private Dictionary<GameObject, float> handCardTargetMaxDistance_Dic = new Dictionary<GameObject, float>();
     private Dictionary<GameObject, Vector3> handCardTargePosition_Dic = new Dictionary<GameObject, Vector3>();
@@ -17,13 +19,13 @@ public class Field : MonoBehaviour {
     private const float adjustX = 1.55f;
     private const float adjustY = 2.05f;
     private Vector3 fieldFirstPosition = new Vector3(-2.325f, 1.55f, 0.0f);
-    private Vector3 cardScale = new Vector3(1.0f, 1.0f, 1.0f);
+    [HideInInspector]
+    public Vector3 cardScale = new Vector3(1.0f, 1.0f, 1.0f);
 
     private const int FIELD_COUNT = 12;
 
     // Use this for initialization
     void Start () {
-
         //場のイメージ
         //  8  0  1  2  3  9
         // 10  4  5  6  7 11
@@ -112,6 +114,9 @@ public class Field : MonoBehaviour {
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
         handCardTargePosition_Dic.Add(card, pos);
         card.transform.parent = transform;
+
+        //タグと描画順を変更
+        cardManager.SetCardTag(card, TAG.TagManager.FIELD_CARD);
     }
 
     /// <summary>

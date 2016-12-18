@@ -19,6 +19,9 @@ public class FieldManager : MonoBehaviour {
     [SerializeField]
     private GameObject deck;
 
+    [SerializeField]
+    private GameObject fieldSpaceCollider;
+
     public float handCardSpeed;
     //プレイヤーに配る時にどこまで移動したら表向きになるかの割合
     public float handCardCenterDistanePer;
@@ -43,11 +46,23 @@ public class FieldManager : MonoBehaviour {
     public enum STATE {
         DECK_SHUFLE,
         CARD_HAND_OUT,
-        GAME,
+        WAIT_SELECT_CARD,
+        TURN_PLAYER_SELECT_CARD,
         RESULT,
         PAUSE
     }
 
+    [SerializeField]
+    private Color CARD_DARK_COLOR;
+    
+    //ターンプレイヤーが選択したカード関連
+    private GameObject selectCard;
+    private Vector3 selectCard_MovePosition;
+    private Vector3 selectCard_OriginScale;
+    private float selectCard_MovePosition_MaxDistance;
+
+    [SerializeField,Header("ターンプレイヤーが選択したカードの移動速度")]
+    private float selectCard_MoveSpeed;
 
     // Use this for initialization
     void Start () {
@@ -67,7 +82,8 @@ public class FieldManager : MonoBehaviour {
                 switch (state) {
                     case STATE.DECK_SHUFLE: DeckShufle(); break;
                     case STATE.CARD_HAND_OUT: CardHandOut(); break;
-                    case STATE.GAME:  break;
+                    case STATE.WAIT_SELECT_CARD:  break;
+                    case STATE.TURN_PLAYER_SELECT_CARD: TurnPlayerSelectCard_Move(); break;
                     case STATE.RESULT:  break;
                     case STATE.PAUSE: break;
                 }
@@ -96,7 +112,7 @@ public class FieldManager : MonoBehaviour {
         if (handoutCounter == 24) {
             //全てのカードが指定の座標まで移動しきっていたら、ゲーム状態に変更
             if (player.GetIsHandOutMovement()&& cpu.GetIsHandOutMovement() && field.GetIsHandOutMovement()) {
-                state = STATE.GAME;
+                state = STATE.WAIT_SELECT_CARD;
             }
         } else {
 
@@ -145,5 +161,54 @@ public class FieldManager : MonoBehaviour {
     /// </summary>
     private void TurnChange() {
 
+    }
+
+    /// <summary>
+    /// 場のカードの色を変更する処理
+    /// </summary>
+    public void SetFieldCardColor(List<GameObject> cardList,bool isColor) {
+        foreach (var card in cardList) {
+
+            if (isColor) card.GetComponent<SpriteRenderer>().color = Color.white;
+            else card.GetComponent<SpriteRenderer>().color = CARD_DARK_COLOR;
+            Debug.Log("card name " + card.name);
+        }
+    }
+
+    /// <summary>
+    /// 何も取れるカードがないときにタッチできる用のコライダーのアクティブを設定
+    /// </summary>
+    public void SetFieldColliderActive(bool isActive) {
+        fieldSpaceCollider.SetActive(isActive);
+    }
+
+    /// <summary>
+    /// ターンプレイヤーが選択したカードを目的の座標、角度、大きさになるように動かす
+    /// </summary>
+    private void TurnPlayerSelectCard_Move() {
+        selectCard.transform.position = Vector3.MoveTowards(selectCard.transform.position,
+                                                            selectCard_MovePosition,
+                                                            Time.deltaTime * selectCard_MoveSpeed);
+
+        //目標までの距離に近づくにつれて、大きさを変える
+        var distance = Vector3.Distance(selectCard.transform.position, selectCard_MovePosition);
+        var distanceLeap = Mathf.Lerp(1f, 0f, distance/selectCard_MovePosition_MaxDistance);
+        Debug.Log("distanceLeap "+ distanceLeap);
+        selectCard.transform.localScale = selectCard_OriginScale * distanceLeap;
+
+        if(selectCard.transform.position == selectCard_MovePosition) {
+        }
+
+    }
+
+    /// <summary>
+    /// 指定したカードの移動させる座標を設定
+    /// </summary>
+    public void SetMoveCardStatus(GameObject card,Vector3 movePosition,STATE state) {
+        selectCard = card;
+        selectCard_MovePosition = movePosition;
+        selectCard_OriginScale = card.transform.localScale;
+        selectCard_MovePosition_MaxDistance = Vector3.Distance(card.transform.position, movePosition);
+        this.state = state;
     }
 }
