@@ -16,12 +16,12 @@ public class Player : MonoBehaviour {
     private Dictionary<GameObject, Vector3> handCardTargePosition_Dic = new Dictionary<GameObject, Vector3>();
 
     private const float adjust = 1.925f;
-    private Vector3 fieldFirstPosition = new Vector3(-6.7375f, -3.5f, 0.0f);
+    private Vector3 handCardFirstPosition = new Vector3(-6.7375f, -3.5f, 0.0f);
     private Vector3 cardScale = new Vector3(1.25f,1.25f,1.0f);
 
     //手札のカードで場のカードを取れるカードリスト
-    private Dictionary<GameObject, List<GameObject>> getCardList_Dic = new Dictionary<GameObject, List<GameObject>>();
-    private Dictionary<GameObject, List<GameObject>> nonGetCardList_Dic = new Dictionary<GameObject, List<GameObject>>();
+    public Dictionary<GameObject, List<int>> getCardList_Dic = new Dictionary<GameObject, List<int>>();
+    public Dictionary<GameObject, List<int>> nonGetCardList_Dic = new Dictionary<GameObject, List<int>>();
 
     private bool onceGetCardList;
 
@@ -49,34 +49,26 @@ public class Player : MonoBehaviour {
 
         for (int i = 0; i < hand.Count; i++) {
 
+            //目標の座標まで動かす
             hand[i].transform.position = Vector3.MoveTowards(hand[i].transform.position,
                                                              handCardTargePosition_Dic[hand[i]],
                                                              Time.deltaTime * fieldManager.handCardSpeed);
 
-            //目標までの距離に近づくにつれてだんだん大きく
+            //目標までの距離に近づくにつれて、大きさを変える
             var distance = Vector3.Distance(hand[i].transform.position, handCardTargePosition_Dic[hand[i]]);
             var distanceLeap = Mathf.Lerp(1f, 0f, distance / handCardTargetMaxDistance_Dic[hand[i]]);
-            hand[i].transform.localScale = cardScale * distanceLeap;
+            hand[i].transform.localScale = Vector3.Lerp(hand[i].transform.localScale, cardScale, distanceLeap);
 
             //一定距離まで移動したら、回転させる
             if (distanceLeap >= fieldManager.handCardCenterDistanePer) {
-                //if (posLeap > fieldManager.handCardMoveDistaneRotPer) {
-                var spriteRenderer = hand[i].GetComponent<SpriteRenderer>();
-                var card = hand[i].GetComponent<Card>();
 
-                hand[i].transform.rotation = Quaternion.RotateTowards(hand[i].transform.rotation,
-                                                                      Quaternion.identity,
-                                                                      Time.deltaTime * 250);
-
-                //var rotationLeap = Mathf.Lerp(1f, 0f, distance / handCardTargetMaxDistance_Dic[hand[i]]);
-                //LerpAngle(float a, float b, float t);
-
-                //var rotationLeap = Mathf.LerpAngle(1f, 0f, hand[i].transform.rotation.eulerAngles.y / 360.0f);
-                //Debug.Log("rotationLeap" + rotationLeap);
+                hand[i].transform.rotation = Quaternion.Slerp(hand[i].transform.rotation, Quaternion.identity, distanceLeap);
 
                 //本当は中間まで回転したらの割合でやりたい
                 if (hand[i].transform.rotation.eulerAngles.y >= 270.0f) {
-                    //if (rotationLeap >= fieldManager.handCardCenterDistanePer) {
+                    var spriteRenderer = hand[i].GetComponent<SpriteRenderer>();
+                    var card = hand[i].GetComponent<Card>();
+
                     spriteRenderer.sprite = card.image[0];
                 }
             }
@@ -88,7 +80,7 @@ public class Player : MonoBehaviour {
     /// </summary>
     public void AddCard(GameObject card) {
 
-        var pos = fieldFirstPosition;
+        var pos = handCardFirstPosition;
         pos.x += adjust * hand.Count;
         
         var maxDistance = Vector3.Distance(card.transform.position, pos);
@@ -123,7 +115,7 @@ public class Player : MonoBehaviour {
     private void Game() {
 
         //プレイヤーのターンだったら
-        if (fieldManager.tunePlayer == FieldManager.TURNPLAYER.PLAYER) {
+        if (fieldManager.turnPlayer == FieldManager.TURNPLAYER.PLAYER) {
 
             //まだ取得可能リストを取得していなかったら、取得する
             if (!onceGetCardList) {
@@ -155,21 +147,25 @@ public class Player : MonoBehaviour {
         for (int i = 0; i < hand.Count; i++) {
             var myCard = hand[i].GetComponent<Card>();
 
-            var getCardList = new List<GameObject>();
-            var nonGetCardList = new List<GameObject>();
-            for (int j = 0; j < field.fieldCard.Count; j++) {
-                var fieldCard = field.fieldCard[j].GetComponent<Card>();
+            var getCardList = new List<int>();
+            var nonGetCardList = new List<int>();
+            for (int j = 0; j < field.fieldCard_Dic.Count; j++) {
+                if (field.fieldCard_Dic[j] != null) {
+                    var fieldCard = field.fieldCard_Dic[j][0].GetComponent<Card>();
 
-                if (myCard.month == fieldCard.month) {
-                    getCardList.Add(field.fieldCard[j]);
-                } else {
-                    nonGetCardList.Add(field.fieldCard[j]);
+                    if (myCard.month == fieldCard.month) {
+                        getCardList.Add(j);
+                    } else {
+                        nonGetCardList.Add(j);
+                    }
                 }
             }
 
             if (getCardList.Count > 0) {
                 getCardList_Dic.Add(hand[i], getCardList);
-                hand[i].transform.GetChild(0).gameObject.SetActive(true);
+
+                var cardEffect = hand[i].transform.GetChild(0).gameObject;
+                cardManager.SetCardEffectIsActive(cardEffect, true);
             }
 
             if (nonGetCardList.Count > 0) {
@@ -180,29 +176,28 @@ public class Player : MonoBehaviour {
 
 
 
+    ///// <summary>
+    ///// 指定したカードで場のカードを取れるカードリスト
+    ///// </summary>
+    ///// <returns></returns>
+    //public List<int> GetGetCardList_Dic(GameObject card) {
+    //    return getCardList_Dic[card];
+    //}
 
-    /// <summary>
-    /// 指定したカードで場のカードを取れるカードリスト
-    /// </summary>
-    /// <returns></returns>
-    public List<GameObject> GetGetCardList_Dic(GameObject card) {
-        return getCardList_Dic[card];
-    }
-
-    /// <summary>
-    /// 指定したカードで場のカードを1枚以上取れるかどうかを取得(true:取れる false:取れない)
-    /// </summary>
-    /// <returns></returns>
-    public bool IsGetCard(GameObject card) {
-        return getCardList_Dic.ContainsKey(card);
-    }
+    ///// <summary>
+    ///// 指定したカードで場のカードを1枚以上取れるかどうかを取得(true:取れる false:取れない)
+    ///// </summary>
+    ///// <returns></returns>
+    //public bool IsGetCard(GameObject card) {
+    //    return getCardList_Dic.ContainsKey(card);
+    //}
 
 
-    /// <summary>
-    /// 指定したカードで場のカードを取れないカードリスト
-    /// </summary>
-    /// <returns></returns>
-    public List<GameObject> GetNonGetCardList_Dic(GameObject card) {
-        return nonGetCardList_Dic[card];
-    }
+    ///// <summary>
+    ///// 指定したカードで場のカードを取れないカードリスト
+    ///// </summary>
+    ///// <returns></returns>
+    //public List<int> GetNonGetCardList_Dic(GameObject card) {
+    //    return nonGetCardList_Dic[card];
+    //}
 }

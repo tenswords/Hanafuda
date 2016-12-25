@@ -84,5 +84,14 @@ public class CardManager : MonoBehaviour {
     public void SetCardSortingLayer(GameObject target, string sortingLayerName) {
         target.GetComponent<SpriteRenderer>().sortingLayerName = sortingLayerName;
     }
+
+    /// <summary>
+    /// カードのエフェクトの表示・非表示を設定
+    /// </summary>
+    /// <param name="cardEffect"></param>
+    /// <param name="isActive"></param>
+    public void SetCardEffectIsActive(GameObject cardEffect, bool isActive) {
+        cardEffect.SetActive(isActive);
+    }
 }
 

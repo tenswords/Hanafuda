@@ -11,10 +11,9 @@ public class Field : MonoBehaviour {
 
     private Dictionary<GameObject, float> handCardTargetMaxDistance_Dic = new Dictionary<GameObject, float>();
     private Dictionary<GameObject, Vector3> handCardTargePosition_Dic = new Dictionary<GameObject, Vector3>();
-    public List<GameObject> fieldCard = new List<GameObject>();
 
-    private Dictionary<int, bool> fieldCard_isPut = new Dictionary<int, bool>();
-    private Dictionary<int, Vector3> fieldPosition = new Dictionary<int, Vector3>();
+    public Dictionary<int, List<GameObject>> fieldCard_Dic = new Dictionary<int, List<GameObject>>();
+    public Dictionary<int, Vector3> fieldPosition = new Dictionary<int, Vector3>();
 
     private const float adjustX = 1.55f;
     private const float adjustY = 2.05f;
@@ -24,13 +23,20 @@ public class Field : MonoBehaviour {
 
     private const int FIELD_COUNT = 12;
 
+    [HideInInspector]
+    public int selectCardIndex;
+
+    public List<int> getCardPutIndexList = new List<int>();
+    public List<int> nonGetCardPutIndexList = new List<int>();
+
     // Use this for initialization
     void Start () {
         //場のイメージ
         //  8  0  1  2  3  9
         // 10  4  5  6  7 11
         for (int i = 0; i < FIELD_COUNT; i++) {
-            fieldCard_isPut.Add(i, true);
+
+            fieldCard_Dic.Add(i,null);
 
             var pos = fieldFirstPosition;
             if (i < 8) {
@@ -72,51 +78,59 @@ public class Field : MonoBehaviour {
     /// </summary>
     private void CardHandOut() {
 
-        for (int i = 0; i < fieldCard.Count; i++) {
+        for (int i = 0; i < fieldCard_Dic.Count; i++) {
+            if (fieldCard_Dic[i] != null) {
+                var card = fieldCard_Dic[i][0];
 
-            fieldCard[i].transform.position = Vector3.MoveTowards(fieldCard[i].transform.position,
-                                                                  handCardTargePosition_Dic[fieldCard[i]],
-                                                                  Time.deltaTime * fieldManager.handCardSpeed);
+                //目標の座標まで動かす
+                card.transform.position = Vector3.MoveTowards(card.transform.position,
+                                                                handCardTargePosition_Dic[card],
+                                                                Time.deltaTime * fieldManager.handCardSpeed);
 
-            //目標までの距離に近づくにつれてだんだん大きく
-            var distance = Vector3.Distance(fieldCard[i].transform.position, handCardTargePosition_Dic[fieldCard[i]]);
-            var distanceLeap = Mathf.Lerp(1f, 0f, distance / handCardTargetMaxDistance_Dic[fieldCard[i]]);
-            fieldCard[i].transform.localScale = cardScale * distanceLeap;
+                //目標までの距離に近づくにつれて、大きさを変える
+                var distance = Vector3.Distance(card.transform.position, handCardTargePosition_Dic[card]);
+                var distanceLeap = Mathf.Lerp(1f, 0f, distance / handCardTargetMaxDistance_Dic[card]);
+                card.transform.localScale = Vector3.Lerp(card.transform.localScale, cardScale, distanceLeap);
 
-            //一定距離まで移動したら、回転させる
-            if (distanceLeap >= fieldManager.handCardCenterDistanePer) {
-                //if (posLeap > fieldManager.handCardMoveDistaneRotPer) {
-                var spriteRenderer = fieldCard[i].GetComponent<SpriteRenderer>();
-                var card = fieldCard[i].GetComponent<Card>();
+                //一定距離まで移動したら、回転させる
+                if (distanceLeap >= fieldManager.handCardCenterDistanePer) {
 
-                fieldCard[i].transform.rotation = Quaternion.RotateTowards(fieldCard[i].transform.rotation,
-                                                                           Quaternion.identity,
-                                                                           Time.deltaTime * 250);
+                    card.transform.rotation = Quaternion.RotateTowards(card.transform.rotation,
+                                                                        Quaternion.identity,
+                                                                        Time.deltaTime * 250);
 
-                //本当は中間まで回転したらの割合でやりたい
-                if (fieldCard[i].transform.rotation.eulerAngles.y >= 270.0f) {
-                    spriteRenderer.sprite = card.image[0];
+                    //本当は中間まで回転したらの割合でやりたい
+                    if (card.transform.rotation.eulerAngles.y >= 270.0f) {
+                        var spriteRenderer = card.GetComponent<SpriteRenderer>();
+                        var f_card = card.GetComponent<Card>();
+                        spriteRenderer.sprite = f_card.image[0];
+                    }
                 }
             }
         }
-
     }
 
+    private int addCardIndex;
     /// <summary>
     /// ゲーム開始時の場に追加される処理
     /// </summary>
     public void AddCard(GameObject card) {
+        var cardList = new List<GameObject>();
+        cardList.Add(card);
 
-        var pos = fieldPosition[fieldCard.Count];
+        var pos = fieldPosition[addCardIndex];
         var maxDistance = Vector3.Distance(card.transform.position, pos);
 
-        fieldCard.Add(card);
+        fieldCard_Dic[addCardIndex] = cardList;
+        addCardIndex++;
+
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
         handCardTargePosition_Dic.Add(card, pos);
         card.transform.parent = transform;
 
         //タグと描画順を変更
         cardManager.SetCardTag(card, TAG.TagManager.FIELD_CARD);
+        cardManager.SetCardSortingLayer(card, SortingLayer.SortingLayerManager.FIELD_CARD);
     }
 
     /// <summary>
@@ -124,12 +138,70 @@ public class Field : MonoBehaviour {
     /// </summary>
     public bool GetIsHandOutMovement() {
 
-        foreach (var card in fieldCard) {
+        foreach (var card in fieldCard_Dic[0]) {
             if (card.transform.position != handCardTargePosition_Dic[card]) {
                 return false;
             }
         }
         return true;
+    }
 
+    /// <summary>
+    /// 指定したカードで場のカードを取れるかどうかを設定
+    /// </summary>
+    public void SetGetCardPutIndexList(GameObject deckCard){
+        var d_Card = deckCard.GetComponent<Card>();
+
+        for (int i=0;i<fieldCard_Dic.Count;i++) {
+
+             if (fieldCard_Dic[i] != null) {
+                var card = fieldCard_Dic[i][0];
+                var f_Card = card.GetComponent<Card>();
+
+                if (i != selectCardIndex) {
+                    if (d_Card.month == f_Card.month) {
+                        getCardPutIndexList.Add(i);
+                    } else {
+                        nonGetCardPutIndexList.Add(i);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 場に置ける場所のリストを取得
+    /// </summary>
+    /// <returns></returns>
+    public List<int> GetPutField() {
+        var getIsPutList = new List<int>();
+
+        for (int i=0;i<FIELD_COUNT;i++) {
+            if (fieldCard_Dic[i] == null) {
+                getIsPutList.Add(i);
+            }
+        }
+        return getIsPutList;
+    }
+
+    /// <summary>
+    /// 場のカードを選択した時に、そのカードに対応した番号を設定
+    /// </summary>
+    /// <param name="card"></param>
+    public void SetSelectCardIndex(GameObject card){
+
+        foreach (var data in fieldCard_Dic) {
+            if (data.Value[0] == card) {
+                selectCardIndex = data.Key;
+                break;
+            }
+        }
+    }
+    /// <summary>
+    /// 場のカードを選択した時に、そのカードに対応した番号を設定
+    /// </summary>
+    /// <param name="index"></param>
+    public void SetSelectCardIndex(int index) {
+        selectCardIndex = index;
     }
 }

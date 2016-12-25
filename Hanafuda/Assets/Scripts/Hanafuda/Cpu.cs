@@ -12,7 +12,7 @@ public class Cpu : MonoBehaviour {
     private List<GameObject> hand = new List<GameObject>();
 
     private const float adjust = 1.16f;
-    private Vector3 fieldFirstPosition = new Vector3(-4.06f, 4.0f, 0.0f);
+    private Vector3 handCardFirstPosition = new Vector3(-4.06f, 4.0f, 0.0f);
     private Vector3 cardScale = new Vector3(0.75f, 0.75f, 1.0f);
 
     // Use this for initialization
@@ -33,14 +33,17 @@ public class Cpu : MonoBehaviour {
 
         for (int i = 0; i < hand.Count; i++) {
 
+            //目標の座標まで動かす
             hand[i].transform.position = Vector3.MoveTowards(hand[i].transform.position,
                                                              handCardTargePosition_Dic[hand[i]],
                                                              Time.deltaTime * fieldManager.handCardSpeed);
 
-            //目標までの距離に近づくにつれてだんだん大きく
+            //目標までの距離に近づくにつれて、大きさを変える
             var distance = Vector3.Distance(hand[i].transform.position, handCardTargePosition_Dic[hand[i]]);
             var distanceLeap = Mathf.Lerp(1f, 0f, distance / handCardTargetMaxDistance_Dic[hand[i]]);
-            hand[i].transform.localScale = cardScale * distanceLeap;
+            hand[i].transform.localScale = Vector3.Lerp(hand[i].transform.localScale,cardScale,distanceLeap);
+
+
         }
 
     }
@@ -48,7 +51,7 @@ public class Cpu : MonoBehaviour {
     /// ゲーム開始時の手札が追加される処理
     /// </summary>
     public void AddCard(GameObject card) {
-        var pos = fieldFirstPosition;
+        var pos = handCardFirstPosition;
         pos.x += adjust * hand.Count;
 
         var maxDistance = Vector3.Distance(card.transform.position, pos);

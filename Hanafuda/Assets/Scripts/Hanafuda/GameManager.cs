@@ -39,7 +39,8 @@ public class GameManager : MonoBehaviour {
                 if (!onceWaitRaady) {
                     Debug.Log("GameManager STATE_READY");
                     onceWaitRaady = true;
-                    StartCoroutine("WaitNextState", STATE.HANAFUDA);
+                    //StartCoroutine("WaitNextState", STATE.HANAFUDA);
+                    StartCoroutine(WaitNextState(1.0f, STATE.HANAFUDA));
                 }
                 break;
 
@@ -51,8 +52,8 @@ public class GameManager : MonoBehaviour {
         }
 	}
 
-    private IEnumerator WaitNextState(STATE nextState) {
-        yield return new WaitForSeconds(1.0f);
+    private IEnumerator WaitNextState(float waitTimer,STATE nextState) {
+        yield return new WaitForSeconds(waitTimer);
         state = nextState;
     }
 
