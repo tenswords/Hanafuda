@@ -11,6 +11,9 @@ public class Player : MonoBehaviour {
     [SerializeField]
     private Field field;
 
+    //得点
+    public int score;
+
     private List<GameObject> hand = new List<GameObject>();
     private Dictionary<GameObject, float> handCardTargetMaxDistance_Dic = new Dictionary<GameObject, float>();
     private Dictionary<GameObject, Vector3> handCardTargePosition_Dic = new Dictionary<GameObject, Vector3>();
@@ -150,7 +153,7 @@ public class Player : MonoBehaviour {
             var getCardList = new List<int>();
             var nonGetCardList = new List<int>();
             for (int j = 0; j < field.fieldCard_Dic.Count; j++) {
-                if (field.fieldCard_Dic[j] != null) {
+                if (field.fieldCard_Dic[j].Count != 0) {
                     var fieldCard = field.fieldCard_Dic[j][0].GetComponent<Card>();
 
                     if (myCard.month == fieldCard.month) {

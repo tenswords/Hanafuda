@@ -75,6 +75,7 @@ public class FieldManager : MonoBehaviour {
     private float cardMoveSpeed;
 
     public List<GameObject> getCardList = new List<GameObject>();
+    public GameObject playerSelectCard;
 
     // Use this for initialization
     void Start () {
@@ -228,12 +229,13 @@ public class FieldManager : MonoBehaviour {
                 case STATE.DECK_CARD_MOVE:
                     //デッキから場に出た後の処理に移行
                     //StartCoroutine(WaitNextState(0.1f, STATE.GET_CARD_MOVE));
-                    state = STATE.GET_CARD_MOVE;
+                    ChangeState_GetCardMove();
                     break;
+
                 case STATE.FIELD_SELECT_DECK_CARD_MOVE:
                     //デッキから場に出た後の処理に移行
                     //StartCoroutine(WaitNextState(0.1f, STATE.GET_CARD_MOVE));
-                    state = STATE.GET_CARD_MOVE;
+                    ChangeState_GetCardMove();
                     break;
 
                 //case STATE.GET_CARD_MOVE:
@@ -245,6 +247,27 @@ public class FieldManager : MonoBehaviour {
     //    yield return new WaitForSeconds(waitTimer);
     //    state = nextState;
     //}
+
+    /// <summary>
+    /// 取得したカードの移動処理になる時の設定
+    /// </summary>
+    private void ChangeState_GetCardMove() {
+
+        playerSelectCard.transform.rotation = Quaternion.identity;
+        getCardField.addGetCard_Dic.Clear();
+        getCardField.checkRoleIndexList.Clear();
+
+        foreach (var getCard in getCardList) {
+            //今回ゲットしたカードを場のカードリストから削除する
+            field.RemoveCard(getCard);
+                        
+            getCard.transform.parent = getCardField.transform;
+            cardManager.SetCardTag(getCard, TAG.TagManager.GET_CARD_FIELD);
+            cardManager.SetCardSortingLayer(getCard, SortingLayer.SortingLayerManager.GET_CARD_FIELD);
+        }
+
+        state = STATE.GET_CARD_MOVE;
+    }
 
     /// <summary>
     /// 指定したカードの移動させる座標や大きさ、角度を設定
@@ -331,10 +354,10 @@ public class FieldManager : MonoBehaviour {
 
             SetMoveCardStatus(deckCard, field.fieldPosition[putIndex], Vector3.zero, field.cardScale, STATE.DECK_CARD_MOVE);
 
-            var _deckCard = new List<GameObject>();
-            _deckCard.Add(deckCard);
-
-            field.fieldCard_Dic[putIndex] = _deckCard;
+            //var _deckCard = new List<GameObject>();
+            //_deckCard.Add(deckCard);
+            //field.fieldCard_Dic[putIndex] = _deckCard;
+            field.fieldCard_Dic[putIndex].Add(deckCard);
             deckCard.transform.parent = field.transform;
             cardManager.SetCardTag(deckCard, TAG.TagManager.FIELD_CARD);
             cardManager.SetCardSortingLayer(deckCard, SortingLayer.SortingLayerManager.FIELD_CARD_FORE);
@@ -426,36 +449,48 @@ public class FieldManager : MonoBehaviour {
     /// </summary>
     private void GetCardMove() {
 
-        //ターンプレイヤーの座標へ移動
+        ////ターンプレイヤーの取得カードの座標へ移動
+        var isMovement = true;
         foreach (var getCard in getCardList) {
-
             var g_Card = getCard.GetComponent<Card>();
             var index = getCardField.GetCardTypeIndex(g_Card);
 
             if (getCard.transform.position != getCardField.getCardPosition[index]) {
                 TargetCardChangeTransform(getCard, getCardField.getCardPosition[index], getCardField.cardScale);
+                isMovement = false;
             }
         }
 
-        if (GetIsGetCardFieldMovement()) state = STATE.CHECK_ROLE;
-    }
-
-
-
-    /// <summary>
-    /// 取得したカードが対応している座標まで全て移動しきっているかを取得
-    /// </summary>
-    public bool GetIsGetCardFieldMovement() {
-
-        foreach (var getCard in getCardList) {
-            var g_Card = getCard.GetComponent<Card>();
-            var index = getCardField.GetCardTypeIndex(g_Card);
-
-            if (getCard.transform.position != getCardField.getCardPosition[index]) {
-                return false;
-            }
+        //全てのカードが移動しきっていたら、役ができたかどうかのチェックに移行
+        if (isMovement) {
+            state = STATE.CHECK_ROLE;
         }
 
-        return true;
+        //foreach (var getCard in getCardList) {
+
+        //    var g_Card = getCard.GetComponent<Card>();
+        //    var index = getCardField.GetCardTypeIndex(g_Card);
+
+        //    //今回追加されたカードがまだ追加されていなければ追加
+        //    //if (!getCardField.getCard_Dic[index].Contains(getCard)) {
+        //    if (!getCardField.addGetCard_Dic.Contains(getCard)) {
+        //        field.fieldCard_Dic[field.selectCardIndex].Remove(getCard);
+        //        //getCardField.getCard_Dic[index].Add(getCard);
+        //        getCardField.addGetCard_Dic.Add(getCard);
+
+        //        getCard.transform.parent = getCardField.transform;
+        //        cardManager.SetCardTag(getCard, TAG.TagManager.GET_CARD_FIELD);
+        //        cardManager.SetCardSortingLayer(getCard, SortingLayer.SortingLayerManager.GET_CARD_FIELD);
+        //    }
+        //    //今回追加されたカードで、役ができたかどうかをチェックするために対応した番号を設定
+        //    if (!getCardField.checkRoleIndexList.Contains(index)) {
+        //        getCardField.checkRoleIndexList.Add(index);
+        //    }
+
+        //    if (getCard.transform.position != getCardField.getCardPosition[index]) {
+        //        TargetCardChangeTransform(getCard, getCardField.getCardPosition[index], getCardField.cardScale);
+        //    }
+
+        //}
     }
 }

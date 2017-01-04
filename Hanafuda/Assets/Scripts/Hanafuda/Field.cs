@@ -36,7 +36,7 @@ public class Field : MonoBehaviour {
         // 10  4  5  6  7 11
         for (int i = 0; i < FIELD_COUNT; i++) {
 
-            fieldCard_Dic.Add(i,null);
+            fieldCard_Dic.Add(i,new List<GameObject>());
 
             var pos = fieldFirstPosition;
             if (i < 8) {
@@ -79,7 +79,7 @@ public class Field : MonoBehaviour {
     private void CardHandOut() {
 
         for (int i = 0; i < fieldCard_Dic.Count; i++) {
-            if (fieldCard_Dic[i] != null) {
+            if (fieldCard_Dic[i].Count != 0) {
                 var card = fieldCard_Dic[i][0];
 
                 //目標の座標まで動かす
@@ -115,13 +115,13 @@ public class Field : MonoBehaviour {
     /// ゲーム開始時の場に追加される処理
     /// </summary>
     public void AddCard(GameObject card) {
-        var cardList = new List<GameObject>();
-        cardList.Add(card);
-
         var pos = fieldPosition[addCardIndex];
         var maxDistance = Vector3.Distance(card.transform.position, pos);
 
-        fieldCard_Dic[addCardIndex] = cardList;
+        //var cardList = new List<GameObject>();
+        //cardList.Add(card);
+        //fieldCard_Dic[addCardIndex] = cardList;
+        fieldCard_Dic[addCardIndex].Add(card);
         addCardIndex++;
 
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
@@ -154,7 +154,7 @@ public class Field : MonoBehaviour {
 
         for (int i=0;i<fieldCard_Dic.Count;i++) {
 
-             if (fieldCard_Dic[i] != null) {
+             if (fieldCard_Dic[i].Count != 0) {
                 var card = fieldCard_Dic[i][0];
                 var f_Card = card.GetComponent<Card>();
 
@@ -177,11 +177,25 @@ public class Field : MonoBehaviour {
         var getIsPutList = new List<int>();
 
         for (int i=0;i<FIELD_COUNT;i++) {
-            if (fieldCard_Dic[i] == null) {
+            if (fieldCard_Dic[i].Count == 0) {
                 getIsPutList.Add(i);
             }
         }
         return getIsPutList;
+    }
+
+    /// <summary>
+    /// 指定されたカードが含まれている場のカードリストをクリアする
+    /// </summary>
+    /// <returns></returns>
+    public void RemoveCard(GameObject card) {
+
+        foreach (var data in fieldCard_Dic) {
+            if (data.Value[0] == card) {
+                fieldCard_Dic[data.Key].Remove(card);
+                break;
+            }
+        }
     }
 
     /// <summary>

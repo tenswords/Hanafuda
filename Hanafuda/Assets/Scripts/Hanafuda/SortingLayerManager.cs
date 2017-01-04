@@ -7,5 +7,6 @@
         public const string PLAYER_HAND_FORE = "PlayerHandFore";
         public const string PLAYER_HAND = "PlayerHand";
         public const string CPU_HAND = "CPUHand";
+        public const string GET_CARD_FIELD = "GetCardField";
     }
 }

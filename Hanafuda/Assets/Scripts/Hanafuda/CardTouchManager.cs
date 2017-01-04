@@ -23,6 +23,9 @@ public class CardTouchManager : MonoBehaviour {
     private Vector3 oldCardScale;
     private Vector3 oldCardRotation;
 
+    public void Initialize() {
+    }
+
     // Use this for initialization
     void Start() {
 
@@ -86,14 +89,16 @@ public class CardTouchManager : MonoBehaviour {
                 }
 
                 //選択したカードを場に追加
-                var _selectCard = new List<GameObject>();
-                _selectCard.Add(selectCard);
-                field.fieldCard_Dic[putIndex] = _selectCard;
+                //var _selectCard = new List<GameObject>();
+                //_selectCard.Add(selectCard);
+                //field.fieldCard_Dic[putIndex] = _selectCard;
+                field.fieldCard_Dic[putIndex].Add(selectCard);
 
                 selectCard.transform.parent = field.transform;
                 cardManager.SetCardTag(selectCard, TAG.TagManager.FIELD_CARD);
                 cardManager.SetCardSortingLayer(selectCard, SortingLayer.SortingLayerManager.FIELD_CARD_FORE);
 
+                fieldManager.playerSelectCard = selectCard;
                 selectCard = null;
                 fieldManager.SetFieldColliderActive(false);
 
@@ -228,6 +233,8 @@ public class CardTouchManager : MonoBehaviour {
                 var cardEffect = data.Key.transform.GetChild(0).gameObject;
                 cardManager.SetCardEffectIsActive(cardEffect, false);
             }
+
+            fieldManager.playerSelectCard = selectCard;
 
             selectCard.transform.parent = field.transform;
             cardManager.SetCardTag(selectCard, TAG.TagManager.FIELD_CARD);
