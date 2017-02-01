@@ -2,65 +2,38 @@
 using System.Collections;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour {
+public class GameManager : SingletonMonoBehaviour<GameManager> {
 
     [SerializeField]
-    private CardManager cardManager;
-
-    [SerializeField]
-    private FieldManager fieldManager;
+    private float sceneChangeInterval;
 
     //ゲーム全体の状態
     public STATE state;
     public enum STATE {
-        READY,
+        TITLE,
+        STORY,
         HANAFUDA,
-        PAUSE,
     }
 
-    [SerializeField]
-    private Button roleListButton;
-    [SerializeField]
-    private GameObject roleListCanvas;
-
-    //private float readyTime;
-    private bool onceWaitRaady;
+    void Awake() {
+        Debug.Log("フレームレート 変更前" + Application.targetFrameRate);
+        Application.targetFrameRate = 60;
+        Debug.Log("フレームレート 変更後" + Application.targetFrameRate);
+    }
 
     // Use this for initialization
     void Start () {
-        state = STATE.READY;
-        onceWaitRaady = false;
+        state = STATE.TITLE;
     }
 	
 	// Update is called once per frame
 	void Update () {
-        switch (state) {
-            case STATE.READY:
-                if (!onceWaitRaady) {
-                    Debug.Log("GameManager STATE_READY");
-                    onceWaitRaady = true;
-                    //StartCoroutine("WaitNextState", STATE.HANAFUDA);
-                    StartCoroutine(WaitNextState(1.0f, STATE.HANAFUDA));
-                }
-                break;
-
-            case STATE.HANAFUDA:
-                break;
-            case STATE.PAUSE:
-                break;
-
-        }
 	}
 
-    private IEnumerator WaitNextState(float waitTimer,STATE nextState) {
-        yield return new WaitForSeconds(waitTimer);
-        state = nextState;
-    }
-
     /// <summary>
-    /// 役一覧ボタンを押したときの処理
+    /// シーン切り替え
     /// </summary>
-    public void OnRoleListButton() {
-        roleListCanvas.SetActive(true);
+    public void SceneChange(string sceneName) {
+        FadeManager.Instance.LoadLevel(sceneName, sceneChangeInterval);
     }
 }

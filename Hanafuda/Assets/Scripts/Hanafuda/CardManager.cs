@@ -86,6 +86,13 @@ public class CardManager : MonoBehaviour {
     }
 
     /// <summary>
+    /// カードの描画順レイヤーを設定する
+    /// </summary>
+    public void SetCardOrderInLayer(GameObject target,int sortingOrderNo) {
+        target.GetComponent<SpriteRenderer>().sortingOrder = sortingOrderNo;
+    }
+
+    /// <summary>
     /// カードのエフェクトの表示・非表示を設定
     /// </summary>
     /// <param name="cardEffect"></param>

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class GetCardField : MonoBehaviour {
 
@@ -17,16 +18,30 @@ public class GetCardField : MonoBehaviour {
 
     private const float adjustY = 1.25f;
 
-    private Vector3 getCardFirstPosition = new Vector3(-8f, 2.5f, 0.0f);
+    private Vector3 getCardFirstPosition = new Vector3(-8f, 2.4f, 0.0f);
     [HideInInspector]
     public Vector3 cardScale = new Vector3(0.5f, 0.5f, 1.0f);
 
     private const int FIELD_COUNT = 8;
 
-    [HideInInspector]
-    public List<int> checkRoleIndexList = new List<int>();
+    [SerializeField]
+    private Color ROLE_REMAINING_COLOR;
 
-    public List<GameObject> addGetCard_Dic = new List<GameObject>();
+    [SerializeField]
+    private Color ROLE_FLUSH_COLOR;
+
+    //成立したか、成立しそうかのリスト
+    public List<string[]> establishRoleSList = new List<string[]>();
+
+    //private int establishRoleIndex;
+    //private List<int> establishRole_FlushList = new List<int>();
+
+    //[SerializeField]
+    //private Image establishRoleImage;
+
+    //[SerializeField]
+    //private Sprite[] roleNameImageList;
+    //public Dictionary<string, Sprite> roleNameImage_Dic = new Dictionary<string, Sprite>();
 
     // Use this for initialization
     void Start () {
@@ -39,11 +54,11 @@ public class GetCardField : MonoBehaviour {
         for (int i = 0; i < FIELD_COUNT; i++) {
             getCard_Dic.Add(i, new List<GameObject>());
 
+            var stringSwitch_Dic = new Dictionary<int, string[]>();
             for (int j=0;j<4; j++) {
-                var stringSwitch_Dic = new Dictionary<int, string[]>();
                 stringSwitch_Dic.Add(j,new string[]{"",""});
-                getRoleString_Dic.Add(i, stringSwitch_Dic);
             }
+            getRoleString_Dic.Add(i, stringSwitch_Dic);
 
             var typeObject = getCardFieldObjectList[i / 4].transform.GetChild(i % 4).gameObject;
             getCardFieldObject_Dic.Add(i, typeObject);
@@ -60,6 +75,7 @@ public class GetCardField : MonoBehaviour {
 	void Update () {
         switch (fieldManager.state) {
             case FieldManager.STATE.CHECK_ROLE: CheckRole(); break;
+            //case FieldManager.STATE.ESTABLISHROLE: EstablishRole(); break;
         }
     }
 
@@ -76,11 +92,11 @@ public class GetCardField : MonoBehaviour {
 
             //カードの種類に対応した場所に移動する
             switch (card.type) {
-                case Card.TYPE.HIKARI: index = 4; break;
+                case Card.TYPE.HIKARI: index = 0; break;
                 case Card.TYPE.BAKE:
-                case Card.TYPE.TANE: index = 5; break;
-                case Card.TYPE.TANZAKU: index = 6; break;
-                case Card.TYPE.KASU: index = 7; break;
+                case Card.TYPE.TANE: index = 1; break;
+                case Card.TYPE.TANZAKU: index = 2; break;
+                case Card.TYPE.KASU: index = 3; break;
             }
 
             break;
@@ -88,11 +104,11 @@ public class GetCardField : MonoBehaviour {
         case FieldManager.TURNPLAYER.COM://CPUのターン
             //カードの種類に対応した場所に移動する
             switch (card.type) {
-                case Card.TYPE.HIKARI: index = 0; break;
+                case Card.TYPE.HIKARI: index = 4; break;
                 case Card.TYPE.BAKE:
-                case Card.TYPE.TANE: index = 1; break;
-                case Card.TYPE.TANZAKU: index = 2; break;
-                case Card.TYPE.KASU: index = 3; break;
+                case Card.TYPE.TANE: index = 5; break;
+                case Card.TYPE.TANZAKU: index = 6; break;
+                case Card.TYPE.KASU: index = 7; break;
             }
 
             break;
@@ -104,41 +120,135 @@ public class GetCardField : MonoBehaviour {
     /// 取得したカードで役ができているかチェック
     /// </summary>
     private void CheckRole() {
-        
+
+        establishRoleSList.Clear();
+        //fieldManager.establishRoleIndex = 0;
+        fieldManager.establishRole_FlushList.Clear();
+
         //追加された種類の場所で役ができたかどうかのチェック！
         foreach (var getCard in fieldManager.getCardList) {
-            var role_Dic = new Dictionary<int, string[]>();
             var g_Card = getCard.GetComponent<Card>();
             var index = GetCardTypeIndex(g_Card);
 
             switch (index) {
                 case 0:
                 case 4:
-                    role_Dic = GetRoleHikari(index, g_Card);
+                    CheckRoleHikari(index, g_Card);
                     break;
                 case 1:
                 case 5:
-                    role_Dic = GetRoleTane(index, g_Card);
+                    CheckRoleTane(index, g_Card);
                     break;
                 case 2:
                 case 6:
-                    role_Dic = GetRoleTanzaku(index, g_Card);
+                    CheckRoleTanzaku(index, g_Card);
                     break;
                 case 3:
                 case 7:
-                    role_Dic = GetRoleKasu(index, g_Card);
+                    CheckRoleKasu(index, g_Card);
                     break;
 
             }
 
             getCard_Dic[index].Add(getCard);
 
-            //取得したカードの種類で役が揃った場合、isRoleをONにする            
-            if (role_Dic.Count > 0) {
+            var targetTypeCount = getCardFieldObject_Dic[index].transform.GetChild(4).GetComponent<Text>();
+            var changedIndex = targetTypeCount.text.IndexOf("×")+1;
+            var changeString = targetTypeCount.text.Substring(changedIndex, (targetTypeCount.text.Length - changedIndex));
 
+            targetTypeCount.text = targetTypeCount.text.Replace(changeString, getCard_Dic[index].Count.ToString());
+        }
+
+        //役の成立状態が Remaining か Flush になった場合、被っている状態を上書きする処理
+        if (establishRoleSList.Count > 0) {
+
+            var removeIndexList = new List<int>();
+            for (int i = 0; i < establishRoleSList.Count - 1; i++) {
+
+                //空になっていたら検索対象外
+                if (establishRoleSList[i][0] == "") continue;
+
+                for (int j = i + 1; j < establishRoleSList.Count; j++) {
+                    //空になっていたら検索対象外
+                    if (establishRoleSList[j][0] == "") continue;
+
+                    if (establishRoleSList[i][0] == establishRoleSList[j][0] &&
+                        establishRoleSList[i][1] == establishRoleSList[j][1] &&
+                        establishRoleSList[i][2] == establishRoleSList[j][2]) {
+
+                        if(establishRoleSList[i][3] != establishRoleSList[j][3]) { 
+                            //被っている役の成立状態を上書き
+                            establishRoleSList[i][3] = establishRoleSList[j][3];
+                        }
+
+                        for (int k = 0; k < 4; k++) establishRoleSList[j][k] = "";
+                        removeIndexList.Add(j);
+                    }
+                }
             }
 
+            //役の成立リストから不要となったものを削除
+            if (removeIndexList.Count > 0) {
+                for (int i = removeIndexList.Count - 1; i >= 0; i--) {
+                    establishRoleSList.RemoveAt(removeIndexList[i]);
+                }
+            }
+
+            //成立した・成立しそうな役を表示
+            for (int i = 0; i < establishRoleSList.Count; i++) {
+                var typeIndex = int.Parse(establishRoleSList[i][0]);
+                var typeSearchTextIndex = int.Parse(establishRoleSList[i][1]);
+                var roleName = establishRoleSList[i][2];
+                var state = establishRoleSList[i][3];
+
+                Debug.Log("typeIndex " + typeIndex);
+                Debug.Log("typeSearchTextIndex " + typeSearchTextIndex);
+                Debug.Log("roleName " + roleName);
+                Debug.Log("state " + state);
+
+                var targetTypeObject = getCardFieldObject_Dic[typeIndex].transform.GetChild(typeSearchTextIndex).gameObject;
+                var roleImage = targetTypeObject.GetComponent<Image>();
+                var roleText = targetTypeObject.transform.GetChild(0).GetComponent<Text>();
+
+                roleText.text = roleName;
+                if (state == Role.RoleManager.REMAINING) {
+                    roleImage.color = ROLE_REMAINING_COLOR;
+
+                } else if (state == Role.RoleManager.FLUSH) {
+                    roleImage.color = ROLE_FLUSH_COLOR;
+                    fieldManager.establishRole_FlushList.Add(roleName);
+
+                    fieldManager.TurnPlayerAddScore(roleName);
+                }
+
+                targetTypeObject.SetActive(true);
+            }
         }
+
+
+        //どの役もFlush状態になっていない場合、ターンをチェンジする
+        if (fieldManager.establishRole_FlushList.Count == 0) {
+            fieldManager.state = FieldManager.STATE.TURNCHANGE;
+
+        } else if (fieldManager.establishRole_FlushList.Count > 0) {
+            //何かの役がFlush状態になった場合、その役のエフェクトを表示
+            fieldManager.state = FieldManager.STATE.ESTABLISHROLE;
+        }
+    }
+
+    /// <summary>
+    /// 役の成立情報の登録
+    /// </summary>
+    private void AddEstablishRoleSList(int index,int searchTextIndex,string roleName,string state) {
+        var establishRole = new string[4];
+
+        establishRole[0] = index.ToString();
+        establishRole[1] = searchTextIndex.ToString();
+        establishRole[2] = roleName;
+        establishRole[3] = state;
+        establishRoleSList.Add(establishRole);
+
+        Debug.Log("establishRole " + establishRole[0]+establishRole[1]+establishRole[2]+establishRole[3]);
 
     }
 
@@ -147,7 +257,7 @@ public class GetCardField : MonoBehaviour {
     /// </summary>
     /// <param name="getCardList"></param>
     /// <returns></returns>
-    private Dictionary<int, string[]> GetRoleHikari(int index,Card card) {
+    private void CheckRoleHikari(int index,Card card) {
 
         //三光 5文
         //雨四光 7文
@@ -155,7 +265,7 @@ public class GetCardField : MonoBehaviour {
         //五光 15文
 
         int searchTextIndex = 0;
-        var stringSwitch_Dic = new Dictionary<int, string[]>();
+
 
         //今回追加されたカードが月であるかどうかを取得
         var isTuki = (card.division == Card.DIVISION.TSUKI) ? true : false;
@@ -167,24 +277,31 @@ public class GetCardField : MonoBehaviour {
             //種のカードの中に盃があるかどうかを取得
             var isSakazuki = GetIsTargetDivision(getCard_Dic[index + 1], Card.DIVISION.SAKAZUKI);
 
+            var roleName = "";
+            if (isTuki) roleName = Role.RoleManager.TUKIMIZAKE;
+            if (isMaku) roleName = Role.RoleManager.HANAMIZAKE;
+
             //月見酒、花見酒の表示設定
             if (isSakazuki) {
                 //盃がある場合、月見酒・花見酒が登録されているはずなので表示状態をRemainingからFlushにする
                 //盃が種のカードリストにある＝searchTextIndexが-1になることはない（見つからないことはない）
 
                 //月見酒・花見酒が登録されているところまで探す
-                if (isTuki) searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index + 1], Role.RoleManager.TUKIMIZAKE);
-                if (isMaku) searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index + 1], Role.RoleManager.HANAMIZAKE);
+                searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index + 1], roleName);
                 getRoleString_Dic[index + 1][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+                //成立情報の登録
+                AddEstablishRoleSList((index + 1), searchTextIndex, roleName, Role.RoleManager.FLUSH);
 
             } else {
 
                 //何も役が表示されていないところに新しく登録する
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index+1], "");
-                if (isTuki) getRoleString_Dic[index + 1][searchTextIndex][0] = Role.RoleManager.TUKIMIZAKE;
-                if (isMaku) getRoleString_Dic[index + 1][searchTextIndex][0] = Role.RoleManager.HANAMIZAKE;
+                getRoleString_Dic[index + 1][searchTextIndex][0] = roleName;
                 getRoleString_Dic[index + 1][searchTextIndex][1] = Role.RoleManager.REMAINING;
 
+                //成立情報の登録
+                AddEstablishRoleSList((index + 1), searchTextIndex, roleName, Role.RoleManager.REMAINING);
             }
         }
 
@@ -194,12 +311,19 @@ public class GetCardField : MonoBehaviour {
         //カードリストの中に小野道風が含まれているかどうかを取得
         var isOno_GetCardList = GetIsTargetDivision(getCard_Dic[index], Card.DIVISION.ONO);
 
+        Debug.Log("getCard_Dic[index].Count " + getCard_Dic[index].Count);
+        if (getCard_Dic[index].Count != 0) Debug.Log("getCard_Dic[index][0].name " + getCard_Dic[index][0].name);
+
         switch (getCard_Dic[index].Count) {
             case 1:
                 if (!isOno && !isOno_GetCardList) {
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
                     getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.SANKOU;
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.SANKOU, Role.RoleManager.REMAINING);
+
                 }
                 break;
             case 2:
@@ -207,27 +331,38 @@ public class GetCardField : MonoBehaviour {
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.SANKOU);
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
 
-                }else {
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.SANKOU, Role.RoleManager.FLUSH);
+
+                } else {
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
                     getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.AMEYONKOU;
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.AMEYONKOU, Role.RoleManager.REMAINING);
+
                 }
                 break;
             case 3:
-                if (!isOno && !isOno_GetCardList) {
-                    searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.YONKOU);
-                    getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
-                }else {
-                    searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.AMEYONKOU);
-                    getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
-                }
+                var roleName = "";
+                if (!isOno && !isOno_GetCardList) roleName = Role.RoleManager.YONKOU;
+                else roleName = Role.RoleManager.AMEYONKOU;
+
+                searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], roleName);
+                getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+                //成立情報の登録
+                AddEstablishRoleSList(index, searchTextIndex, roleName, Role.RoleManager.FLUSH);
                 break;
             case 4:
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.GOKOU);
                 getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+                //成立情報の登録
+                AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.GOKOU, Role.RoleManager.FLUSH);
                 break;
         }
-            return stringSwitch_Dic;
     }
 
     /// <summary>
@@ -266,7 +401,7 @@ public class GetCardField : MonoBehaviour {
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    private Dictionary<int, string[]> GetRoleTane(int index,Card card) {
+    private void CheckRoleTane(int index,Card card) {
 
         //猪鹿蝶 5文+a
         //花見酒 3文+a
@@ -274,7 +409,6 @@ public class GetCardField : MonoBehaviour {
         //タネ 1文+a
 
         int searchTextIndex;
-        var stringSwitch_Dic = new Dictionary<int, string[]>();
 
         //今回追加されたカードが盃であるかどうかを取得
         var isSakazuki = (card.division == Card.DIVISION.SAKAZUKI) ? true : false;
@@ -288,12 +422,18 @@ public class GetCardField : MonoBehaviour {
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.TUKIMIZAKE);
                 getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
 
+                //成立情報の登録
+                AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.TUKIMIZAKE, Role.RoleManager.FLUSH);
+
             } else {
 
                 //何も役が表示されていないところに新しく登録する
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
                 getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.TUKIMIZAKE;
                 getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+                //成立情報の登録
+                AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.TUKIMIZAKE, Role.RoleManager.REMAINING);
             }
 
             //花見酒の表示設定
@@ -303,23 +443,35 @@ public class GetCardField : MonoBehaviour {
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.HANAMIZAKE);
                 getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
 
+                //成立情報の登録
+                AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.HANAMIZAKE, Role.RoleManager.FLUSH);
+
             } else {
 
                 //何も役が表示されていないところに新しく登録する
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
                 getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.HANAMIZAKE;
                 getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+                
+                //成立情報の登録
+                AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.HANAMIZAKE, Role.RoleManager.REMAINING);
             }
 
             //カスのカードの枚数によってRemaining Flushを設定
             if (getCard_Dic[index + 2].Count == 8) {
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index + 2], "");
-                getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.KASU;
-                getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+                getRoleString_Dic[index + 2][searchTextIndex][0] = Role.RoleManager.KASU;
+                getRoleString_Dic[index + 2][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+                //成立情報の登録
+                AddEstablishRoleSList((index + 2), searchTextIndex, Role.RoleManager.KASU, Role.RoleManager.REMAINING);
 
             } else if (getCard_Dic[index + 2].Count > 8) {
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index + 2], Role.RoleManager.KASU);
-                getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
+                getRoleString_Dic[index + 2][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+                //成立情報の登録
+                AddEstablishRoleSList((index + 2), searchTextIndex, Role.RoleManager.KASU, Role.RoleManager.FLUSH);
             }
         }
 
@@ -349,11 +501,17 @@ public class GetCardField : MonoBehaviour {
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
                     getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.INOSHIKATYOU;
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.INOSHIKATYOU, Role.RoleManager.REMAINING);
+
                     break;
                 case 2://猪鹿蝶の枚数2枚の場合Flushに設定
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.INOSHIKATYOU);
-                    getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.INOSHIKATYOU;
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.INOSHIKATYOU, Role.RoleManager.FLUSH);
                     break;
             }
 
@@ -365,12 +523,16 @@ public class GetCardField : MonoBehaviour {
             getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.TANE;
             getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
 
+            //成立情報の登録
+            AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.TANE, Role.RoleManager.REMAINING);
+
         } else if (getCard_Dic[index].Count > 3) {
             searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.TANE);
             getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
-        }
 
-            return stringSwitch_Dic;
+            //成立情報の登録
+            AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.TANE, Role.RoleManager.FLUSH);
+        }
     }  
 
     /// <summary>
@@ -378,7 +540,7 @@ public class GetCardField : MonoBehaviour {
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    private Dictionary<int, string[]> GetRoleTanzaku(int index,Card card) {
+    private void CheckRoleTanzaku(int index,Card card) {
 
         //赤青短 10文 +a
         //赤短 5文+a
@@ -387,7 +549,6 @@ public class GetCardField : MonoBehaviour {
         //短冊 1文+a
 
         int searchTextIndex;
-        var stringSwitch_Dic = new Dictionary<int, string[]>();
 
         //今回追加されたカードが赤短冊であるかどうかを取得
         var isAkatanzaku = (card.division == Card.DIVISION.AKATANZAKU) ? true : false;
@@ -405,10 +566,17 @@ public class GetCardField : MonoBehaviour {
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
                     getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.AKATANZAKU;
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.AKATANZAKU, Role.RoleManager.REMAINING);
+
                     break;
                 case 2:
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.AKATANZAKU);
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.AKATANZAKU, Role.RoleManager.FLUSH);
                     break;
             }
         }
@@ -429,10 +597,18 @@ public class GetCardField : MonoBehaviour {
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
                     getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.AOTANZAKU;
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.AOTANZAKU, Role.RoleManager.REMAINING);
+
                     break;
                 case 2:
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.AOTANZAKU);
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.AOTANZAKU, Role.RoleManager.FLUSH);
+
                     break;
             }
         }
@@ -443,12 +619,16 @@ public class GetCardField : MonoBehaviour {
             getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.TANZAKU;
             getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
 
+            //成立情報の登録
+            AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.TANZAKU, Role.RoleManager.REMAINING);
+
         } else if (getCard_Dic[index].Count > 4) {
             searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.TANZAKU);
             getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
-        }
 
-        return stringSwitch_Dic;
+            //成立情報の登録
+            AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.TANZAKU, Role.RoleManager.FLUSH);
+        }
     }
 
     /// <summary>
@@ -456,12 +636,11 @@ public class GetCardField : MonoBehaviour {
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
-    private Dictionary<int, string[]> GetRoleKasu(int index, Card card) {
+    private void CheckRoleKasu(int index, Card card) {
 
         //カス 1文+a
 
         int searchTextIndex;
-        var stringSwitch_Dic = new Dictionary<int, string[]>();
 
         int isSakazukiCount = 0;
         var isSakazuki = GetIsTargetDivision(getCard_Dic[index - 2], Card.DIVISION.SAKAZUKI);
@@ -471,14 +650,17 @@ public class GetCardField : MonoBehaviour {
             searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
             getRoleString_Dic[index][searchTextIndex][0] = Role.RoleManager.KASU;
             getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.REMAINING;
+
+            //成立情報の登録
+            AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.KASU, Role.RoleManager.REMAINING);
+
         } else if (getCard_Dic[index].Count + isSakazukiCount > 8) {
             searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.KASU);
             getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
+
+            //成立情報の登録
+            AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.KASU, Role.RoleManager.FLUSH);
+
         }
-
-        return stringSwitch_Dic;
     }
-
-
-
 }

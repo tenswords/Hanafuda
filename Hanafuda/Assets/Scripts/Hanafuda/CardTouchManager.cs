@@ -24,6 +24,8 @@ public class CardTouchManager : MonoBehaviour {
     private Vector3 oldCardRotation;
 
     public void Initialize() {
+        selectCard = null;
+        oldSelectCard = null;
     }
 
     // Use this for initialization
@@ -62,10 +64,10 @@ public class CardTouchManager : MonoBehaviour {
                 }
             }
 
-            //isFieldSpaceがtrueではない場合、"FieldSpace"をタッチした
+            //isFieldSpaceがtrueの場合、"FieldSpace"をタッチした
             if (isFieldSpace) {
 
-                //fieldのisputがfalseになっているところから、ランダムで選んで場に出す
+                //fieldの各場所を調べて、何もカードが置かれていないところから、ランダムで選んで場に出す
                 var isPutList = field.GetPutField();
                 var putIndex = isPutList[Random.Range(0, isPutList.Count)];
 
@@ -92,11 +94,13 @@ public class CardTouchManager : MonoBehaviour {
                 //var _selectCard = new List<GameObject>();
                 //_selectCard.Add(selectCard);
                 //field.fieldCard_Dic[putIndex] = _selectCard;
+                player.RemoveCard(selectCard);
                 field.fieldCard_Dic[putIndex].Add(selectCard);
 
                 selectCard.transform.parent = field.transform;
                 cardManager.SetCardTag(selectCard, TAG.TagManager.FIELD_CARD);
-                cardManager.SetCardSortingLayer(selectCard, SortingLayer.SortingLayerManager.FIELD_CARD_FORE);
+                cardManager.SetCardSortingLayer(selectCard, SortingLayer.SortingLayerManager.FIELD_CARD);
+                cardManager.SetCardOrderInLayer(selectCard, 3);
 
                 fieldManager.playerSelectCard = selectCard;
                 selectCard = null;
@@ -126,9 +130,7 @@ public class CardTouchManager : MonoBehaviour {
                             //プレイヤーのカードが選択されている、かつ
                             //選択されているカードでそのカードが取れるなら、カードを取る処理
                             //それ以外では何もしない
-                            SelectFieldCard(collider.gameObject);
-
-                            //デッキから場にカードが出る時に、プレイヤーが選択する処理
+                            if(selectCard != null) SelectFieldCard(collider.gameObject);
 
                             break;
 
@@ -151,9 +153,9 @@ public class CardTouchManager : MonoBehaviour {
     /// <summary>
     /// プレイヤーの手札のカードをタッチした時の処理
     /// </summary>
-    private void SelectPlayerHandCard(GameObject selectCard) {
+    private void SelectPlayerHandCard(GameObject playerHand_SelectCard) {
 
-        this.selectCard = selectCard;
+        selectCard = playerHand_SelectCard;
 
         //1つ前に選択していたカードを元に戻す
         ReturnOldSelectCard();
@@ -216,6 +218,7 @@ public class CardTouchManager : MonoBehaviour {
                                            field.cardScale,
                                            FieldManager.STATE.TURN_PLAYER_SELECT_CARD);
 
+            player.RemoveCard(selectCard);
             fieldManager.getCardList.Add(selectCard);
 
             //場の対応した番号にあるカードを全て取得リストに追加
@@ -234,11 +237,12 @@ public class CardTouchManager : MonoBehaviour {
                 cardManager.SetCardEffectIsActive(cardEffect, false);
             }
 
-            fieldManager.playerSelectCard = selectCard;
-
             selectCard.transform.parent = field.transform;
             cardManager.SetCardTag(selectCard, TAG.TagManager.FIELD_CARD);
-            cardManager.SetCardSortingLayer(selectCard, SortingLayer.SortingLayerManager.FIELD_CARD_FORE);
+            cardManager.SetCardSortingLayer(selectCard, SortingLayer.SortingLayerManager.FIELD_CARD);
+            cardManager.SetCardOrderInLayer(selectCard, 3);
+
+            fieldManager.playerSelectCard = selectCard;
         }
     }
 

@@ -131,7 +131,7 @@ public class Card : MonoBehaviour {
         //画像の設定
         image = new Sprite[2];
         image[0] = spriteRenderer.sprite;
-        image[1] = Resources.Load<Sprite>("Card/Hanafuda_Uramen");
+        image[1] = Resources.Load<Sprite>("Hanafuda/Card/Hanafuda_Uramen");
         spriteRenderer.sprite = image[1];
 
         //画像の名前から、カードの詳細を設定
