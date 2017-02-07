@@ -36,11 +36,11 @@
 
 [BackGround=Azemichi]
 [TalkName=花緒]
-[CharaFace=花緒、Hanao_2-7]
+[CharaFace=花緒、Hanao_2_7]
 「うわぁ･････････田舎って感じの匂いがするなぁ･････････」
 
 [TalkName=花緒]
-[CharaFace=花緒、Hanao_2-2]
+[CharaFace=花緒、Hanao_2_2]
 「ん？？この道はなんだろう」
 
 そこにはバス道とは別に歩行者用の別の道があるのが見えた。
@@ -48,11 +48,12 @@
 方向的には花札村と同じ方角にのびている。
 
 [TalkName=花緒]
-[CharaFace=花緒、Hanao_2-3]
+[CharaFace=花緒、Hanao_2_3]
 「もしかしたらバス道よりも近いかもしれないし
 [NewLine]
 この道に行ってみよう」
 
+[BackGround=Azemichi]
 
 [BackGround=In_Forest]
 [TalkName=花緒]
@@ -76,13 +77,13 @@
 「…………]
 
 [TalkName=花緒]
-[CharaFace=花緒、Hanao_2-2]
+[CharaFace=花緒、Hanao_2_2]
 「！！」
 
 微かだったが人の声が聞こえた。
 
 [TalkName=花緒]
-[CharaFace=花緒、Hanao_2-4]
+[CharaFace=花緒、Hanao_2_4]
 「やった！誰か近くにいるんだ」
 
 「もしかしたら花札村の人かもしれない！
@@ -113,13 +114,13 @@
 (こんな山の中に住んでる人もいるんだなぁ･････････)
 
 [TalkName=花緒]
-[CharaFace=花緒、Hanao_2-5]
+[CharaFace=花緒、Hanao_2_5]
 「すみませーん。道をお尋ねしたいのですが」
 
 その瞬間さっきまで話していた声がフッとやんだ。
 
 [TalkName=花緒]
-[CharaFace=花緒、Hanao_2-1]
+[CharaFace=花緒、Hanao_2_1]
 (うわ･････････すごい静かなんですけど･････････)
 
 返事が無い。
@@ -132,7 +133,7 @@
 
 そして･･････････
 
-[TalkName=花緒」
+[TalkName=花緒]
 「･････････え･････････」
 [CharaHide=花緒]
 

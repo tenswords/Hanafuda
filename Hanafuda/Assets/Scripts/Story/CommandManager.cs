@@ -99,7 +99,7 @@ public class CommandManager : MonoBehaviour {
             case COMMAND_CHARA_FACE: CommandCharaFace(analize[1]); break;
             case COMMAND_CHARA_HIDE: CommandCharaHide(analize[1]); break;
             case COMMAND_NEW_LINE: storyManager.CommandNewLine(true); break;
-            case COMMAND_CHAPTER_END: break;
+            case COMMAND_CHAPTER_END: CommandChapterEnd(); break;
             case COMMAND_HANAFUDA_START: break;
         }
     }
@@ -110,6 +110,7 @@ public class CommandManager : MonoBehaviour {
     private void CommnadBackGround(string nextSpriteName) {
         if (storyManager.lineIndex == 0) {
             SetImage(nextSpriteName, backGround, BACK_GROUND_PATH);
+            backGround.enabled = true;
             storyManager.CommandNewLine();
         } else {
             StartCoroutine(ChangeSprite(FADE_TIME, nextSpriteName, backGround, BACK_GROUND_PATH));
@@ -165,6 +166,13 @@ public class CommandManager : MonoBehaviour {
         }
 
         storyManager.CommandNewLine();
+    }
+
+    /// <summary>
+    /// [ChapterEnd]コマンドの処理
+    /// </summary>
+    private void CommandChapterEnd() {
+        FadeManager.Instance.LoadLevel(SceneName.SceneNameManager.SCENE_NAME_TITLE, GameManager.Instance.sceneChangeInterval);
     }
 
     /// <summary>

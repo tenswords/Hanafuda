@@ -23,13 +23,13 @@ public class StoryManager : MonoBehaviour {
 
     private bool isLineEnd;
 
-    [SerializeField,Header("1行を読み込む時間")]
-    private float lineReadTime;
-    [SerializeField]
-    private float MAX_LINE_READ_TIME;
+    [SerializeField, Header("最初のテキストを読み込むまでの時間")]
+    private float MAX_STORY_STATED_WAIT_TIME;
 
     [SerializeField,Header("1文字を表示する時間")]
     private float MAX_ONE_WARD_READ_TIME;
+    [SerializeField]
+    private float wardReadTime;
 
     [SerializeField]
     private Text textField_Text;
@@ -44,23 +44,26 @@ public class StoryManager : MonoBehaviour {
     }
 
     public bool isFading;
-    public bool isStarted;
+    public bool isWaitStoryStarted;
+    private bool isWardRead;
 
     // Use this for initialization
     void Start () {
-        selectChapterName = CHAPTER_PATH + "Chapter_1";
+        var storyNo = GameManager.Instance.storyNo;
+        selectChapterName = CHAPTER_PATH + "Chapter_" + storyNo;
         var textAsset = (TextAsset)Resources.Load(selectChapterName);
         lineText = textAsset.ToString().Split("\n"[0]);
         lineIndex = 0;
+        isWardRead = true;
 
-        StartCoroutine(StoryStarted());
+        StartCoroutine(WaitStoryStarted(MAX_STORY_STATED_WAIT_TIME));
     }
 	
 	// Update is called once per frame
 	void Update () {
 
         //フェード処理中は以降に進まない
-        if (isFading) return;
+        if (isFading || isWaitStoryStarted) return;
 
         switch (state) {
             case STATE.READTEXT:
@@ -72,10 +75,10 @@ public class StoryManager : MonoBehaviour {
         }
     }
 
-    private IEnumerator StoryStarted() {
-        isStarted = true;
-        yield return new WaitForSeconds(0.25f);
-        isStarted = false;
+    private IEnumerator WaitStoryStarted(float waitTime) {
+        isWaitStoryStarted = true;
+        yield return new WaitForSeconds(waitTime);
+        isWaitStoryStarted = false;
     }
 
     /// <summary>
@@ -105,30 +108,35 @@ public class StoryManager : MonoBehaviour {
 
             } else {
 
-                var ward = line.Substring(wardIndex, 1);
-                //コマンド用の文字ではない場合、文字の表示を行う
-                textField_Text.text += ward;
-                wardIndex++;
-                //1行の最後まで読み込んだら、プレイヤーのTAP待ちにする（NextButton点滅）
-                if (wardIndex == (line.Length - 1)) {
+                if (isWardRead) {
 
-                    //次の行を読み込み改行コマンドであった場合、さらに次の行へ進むための処理
-                    var nextLine = lineText[lineIndex + 1];
-                    var nextWard = nextLine.Substring(0, 1);
-                    if (commandManager.IsContainsCommandWard(nextWard)) {
-                        //読み込んだ1文字がコマンド用の文字の場合、どのコマンドかを解析して対応した処理を行う
-                        var command = commandManager.GetCommand(nextLine);
-                        commandManager.CommandAnalize(command);
+                    var ward = line.Substring(wardIndex, 1);
+                    //コマンド用の文字ではない場合、文字の表示を行う
+                    textField_Text.text += ward;
+                    wardIndex++;
+                    //1行の最後まで読み込んだら、プレイヤーのTAP待ちにする（NextButton点滅）
+                    if (wardIndex == (line.Length - 1)) {
 
-                    } else {
-                        isLineEnd = true;
+                        //次の行を読み込み改行コマンドであった場合、さらに次の行へ進むための処理
+                        var nextLine = lineText[lineIndex + 1];
+                        var nextWard = nextLine.Substring(0, 1);
+                        if (commandManager.IsContainsCommandWard(nextWard)) {
+                            //読み込んだ1文字がコマンド用の文字の場合、どのコマンドかを解析して対応した処理を行う
+                            var command = commandManager.GetCommand(nextLine);
+                            commandManager.CommandAnalize(command);
+
+                        } else {
+                            isLineEnd = true;
+                        }
                     }
-                }
 
-                if (isLineEnd) {
-                    isLineEnd = false;
-                    state = STATE.WAIT_NEXT;
-                    textField_NextButton.SetActive(true);
+                    if (isLineEnd) {
+                        isLineEnd = false;
+                        state = STATE.WAIT_NEXT;
+                        textField_NextButton.SetActive(true);
+                    }
+
+                    StartCoroutine(WaitOneWardRead(MAX_ONE_WARD_READ_TIME));
                 }
             }
         }
@@ -164,6 +172,12 @@ public class StoryManager : MonoBehaviour {
             state = STATE.WAIT_NEXT;
             textField_NextButton.SetActive(true);
         }
+    }
+
+    private IEnumerator WaitOneWardRead(float waitTime) {
+        isWardRead = false;
+        yield return new WaitForSeconds(waitTime);
+        isWardRead = true;
     }
 
     /// <summary>

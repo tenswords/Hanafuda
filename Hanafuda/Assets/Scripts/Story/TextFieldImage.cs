@@ -24,7 +24,7 @@ public class TextFieldImage : MonoBehaviour {
 
     public void OnPointerUp() {
 
-        if(storyManager.isStarted || storyManager.isFading || isWaitTap) return;
+        if(storyManager.isWaitStoryStarted || storyManager.isFading || isWaitTap) return;
 
         StartCoroutine(WaitTap(0.25f));
 

@@ -27,12 +27,12 @@ public class FadeManager : SingletonMonoBehaviour<FadeManager>
 
 	public void Awake ()
 	{
-		if (this != Instance) {
-			Destroy (this.gameObject);
-			return;
-		}
+		//if (this != Instance) {
+		//	Destroy (this.gameObject);
+		//	return;
+		//}
 		
-		DontDestroyOnLoad (this.gameObject);
+		//DontDestroyOnLoad (this.gameObject);
 	}
 
 	public void OnGUI()
