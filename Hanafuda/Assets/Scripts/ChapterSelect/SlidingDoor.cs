@@ -37,7 +37,7 @@ public class SlidingDoor : MonoBehaviour {
     }
 
     public void SlidingDoorClose() {
-        StartCoroutine(DoorOpenClose(0.15f,"Close"));
+        StartCoroutine(DoorOpenClose(0.5f,"Close"));
     }
 
     private IEnumerator DoorOpenClose(float interval, string callName) {
@@ -67,6 +67,6 @@ public class SlidingDoor : MonoBehaviour {
 
     private IEnumerator WaitSlidingDoorOpenAnimation() {
         yield return new WaitForSeconds(1.0f);
-        StartCoroutine(DoorOpenClose(0.15f, "Open"));
+        StartCoroutine(DoorOpenClose(0.5f, "Open"));
     }
 }

@@ -35,6 +35,11 @@ public class TitleManager : MonoBehaviour {
 
     public Vector3 ON_BUTTON_SCALE_SIZE;
 
+    void Awake() {
+        GameManager.Instance.state = GameManager.STATE.TITLE;
+        //InterruptionDialogManager.Instance.SetCanvasCamera();
+    }
+
     // Use this for initialization
     void Start() {
 

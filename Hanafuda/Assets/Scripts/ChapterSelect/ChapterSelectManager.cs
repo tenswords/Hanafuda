@@ -55,6 +55,11 @@ public class ChapterSelectManager : MonoBehaviour {
 
     public Vector2 TITLE_BUTTON_SCALE_SIZE;
 
+    void Awake() {
+        GameManager.Instance.state = GameManager.STATE.CHAPTER_SELECT;
+        //InterruptionDialogManager.Instance.SetCanvasCamera();
+    }
+
     // Use this for initialization
     void Start () {
 

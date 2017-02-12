@@ -49,7 +49,7 @@ public class ChapterSelectButton : MonoBehaviour {
             if (nextSceneName == SceneName.SceneNameManager.SCENE_NAME_TITLE) {
                 //タイトルを選んだ場合
                 mirrorSurfaceObject.SetActive(false);
-                StartCoroutine(OnTitleButton(0.5f));
+                StartCoroutine(OnTitleButton(1.0f));
 
             } else {
                 //ストーリーの各章を選んだ場合

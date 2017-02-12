@@ -19,12 +19,8 @@ public class CommandManager : MonoBehaviour {
     private const string COMMAND_CHAPTER_END = "ChapterEnd";
     private const string COMMAND_HANAFUDA_START = "HanafudaStart";
 
-
-    private const string BACK_GROUND_PATH = "Story/BackGround/";
-    private const string CHARA_PATH = "Story/Character/";
-
-    [SerializeField]
-    private Image backGround;
+    //[SerializeField]
+    //private Image backGround;
 
     [SerializeField]
     private Image[] talkCharaList;
@@ -41,8 +37,10 @@ public class CommandManager : MonoBehaviour {
     [SerializeField]
     private Color NOT_TALK_CHARA_COLOR;
 
-    private Dictionary<string, Sprite> spriteDic;
-    private Dictionary<string, Image> talkCharaDic;
+    ////キャラクターの表情ディクショナリ
+    //private Dictionary<string, Sprite> storyManager.charaSpriteDic;
+    ////トークキャラクターのディクショナリ
+    //private Dictionary<string, Image> storyManager.talkCharaDic;
 
     //だんだん暗くする処理を行うかどうかのフラグ
     private bool isCharaFade;
@@ -51,8 +49,8 @@ public class CommandManager : MonoBehaviour {
 
     // Use this for initialization
     void Start() {
-        spriteDic = new Dictionary<string, Sprite>();
-        talkCharaDic = new Dictionary<string, Image>();
+        //storyManager.charaSpriteDic = new Dictionary<string, Sprite>();
+        //storyManager.talkCharaDic = new Dictionary<string, Image>();
     }
 
     /// <summary>
@@ -109,34 +107,57 @@ public class CommandManager : MonoBehaviour {
     /// </summary>
     private void CommnadBackGround(string nextSpriteName) {
         if (storyManager.lineIndex == 0) {
-            SetImage(nextSpriteName, backGround, BACK_GROUND_PATH);
-            backGround.enabled = true;
+            SetImage(nextSpriteName, storyManager.backGround, storyManager.BACK_GROUND_PATH);
+            storyManager.backGround.color = Color.white;
             storyManager.CommandNewLine();
         } else {
-            StartCoroutine(ChangeSprite(FADE_TIME, nextSpriteName, backGround, BACK_GROUND_PATH));
+            StartCoroutine(ChangeSprite(FADE_TIME, nextSpriteName, storyManager.backGround, storyManager.BACK_GROUND_PATH));
         }
     }
 
     /// <summary>
     /// [TalkName]コマンドの処理
     /// </summary>
-    private void CommandTalkName(string talkName) {
+    public void CommandTalkName(string talkName) {
 
-        if (!talkCharaDic.ContainsKey(talkName)) {
-            var activeIndex = talkCharaDic.Count;
-            talkCharaDic.Add(talkName, talkCharaList[activeIndex]);
-            talkCharaList[activeIndex].gameObject.SetActive(true);
-            isCharaFade = true;
+        if (!storyManager.talkCharaDic.ContainsKey(talkName)) {
+            AddTalkChara(talkName);
         }
 
-        //話すキャラクター以外を暗くする
-        if (talkCharaDic.Count > 1) {
-            foreach (var data in talkCharaDic) {
-                if (talkName != data.Key) data.Value.color = NOT_TALK_CHARA_COLOR;
-            }            
-        }
+        SetNonTalkCharaColor(talkName);
 
+        storyManager.talkCharaName = talkName;
         storyManager.CommandNewLine();
+    }
+
+    /// <summary>
+    /// 話すキャラクターを新規に登録する
+    /// </summary>
+    /// <param name="talkName"></param>
+    public void AddTalkChara(string talkName) {
+        var activeIndex = storyManager.talkCharaDic.Count;
+        storyManager.talkCharaDic.Add(talkName, talkCharaList[activeIndex]);
+
+        //話しているキャラクターの数によって座標をずらす
+        //Position;
+
+        talkCharaList[activeIndex].gameObject.SetActive(true);
+
+        //ここではいらない気がする
+        //isCharaFade = true;
+    }
+
+
+    /// <summary>
+    /// 話すキャラクター以外を暗くする
+    /// </summary>
+    /// <param name="talkName"></param>
+    public void SetNonTalkCharaColor(string talkName) {
+        if (storyManager.talkCharaDic.Count > 1) {
+            foreach (var data in storyManager.talkCharaDic) {
+                if (talkName != data.Key) data.Value.color = NOT_TALK_CHARA_COLOR;
+            }
+        }
     }
 
     /// <summary>
@@ -151,7 +172,7 @@ public class CommandManager : MonoBehaviour {
 
         isCharaFade = true;
 
-        StartCoroutine(ChangeSprite(CHARAFACE_FADE_TIME, nextFaceName, talkCharaDic[talkCharaName], CHARA_PATH));
+        StartCoroutine(ChangeSprite(CHARAFACE_FADE_TIME, nextFaceName, storyManager.talkCharaDic[talkCharaName], storyManager.CHARA_PATH));
     }
 
     /// <summary>
@@ -162,7 +183,7 @@ public class CommandManager : MonoBehaviour {
         isCharaHide = true;
         var hideCharaNameList = hideCharaName.Split("、"[0]);
         foreach(var charaName in hideCharaNameList) {
-            StartCoroutine(ChangeSprite(CHARAFACE_FADE_TIME, "", talkCharaDic[charaName], ""));
+            StartCoroutine(ChangeSprite(CHARAFACE_FADE_TIME, "", storyManager.talkCharaDic[charaName], ""));
         }
 
         storyManager.CommandNewLine();
@@ -217,16 +238,16 @@ public class CommandManager : MonoBehaviour {
     /// <summary>
     /// 画像を登録・変更する
     /// </summary>
-    private void SetImage(string nextSpriteName, Image spriteImage, string PATH) {
+    public void SetImage(string nextSpriteName, Image spriteImage, string PATH) {
 
         //変更したい画像がディクショナリ配列に既に登録されている場合、登録されている画像を設定
-        if (spriteDic.ContainsKey(nextSpriteName)) {
-            spriteImage.sprite = spriteDic[nextSpriteName];
+        if (storyManager.spriteDic.ContainsKey(nextSpriteName)) {
+            spriteImage.sprite = storyManager.spriteDic[nextSpriteName];
 
         } else {
             //登録されていない場合、指定した名前の画像をResoucesフォルダから読み込んで新規に登録
             var loadSprite = Resources.Load<Sprite>(PATH + nextSpriteName);
-            spriteDic.Add(nextSpriteName, loadSprite);
+            storyManager.spriteDic.Add(nextSpriteName, loadSprite);
 
             spriteImage.sprite = loadSprite;
         }

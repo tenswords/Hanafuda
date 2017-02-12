@@ -26,7 +26,7 @@ public class StoryTitle : MonoBehaviour {
     }
 
     public void PlayViewAnimation() {
-        StartCoroutine(ViewFade(0.3f,"View"));
+        StartCoroutine(ViewFade(0.5f,"View"));
     }
 
     private IEnumerator ViewFade(float interval,string callName) {
@@ -62,6 +62,6 @@ public class StoryTitle : MonoBehaviour {
     }
 
     public void PlayFadeAnimation() {
-        StartCoroutine(ViewFade(0.5f, "Fade"));
+        StartCoroutine(ViewFade(1.0f, "Fade"));
     }
 }

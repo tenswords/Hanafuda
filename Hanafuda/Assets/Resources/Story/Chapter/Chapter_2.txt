@@ -1,4 +1,4 @@
-﻿[BackGround=In_Room]
+[BackGround=In_Room]
 [TalkName=花緒]
 [CharaFace=花緒、Hanao_2_6]
 
@@ -82,7 +82,7 @@
 
 「………あの………私も
 [NewLine]
-あなたと花札･･･……したい………」
+あなたと花札………したい………」
 
 そこには部屋の柱のかげからこちらを伺っている少女がいた。
 
@@ -141,7 +141,7 @@
 [TalkName=花緒]
 「昔すこしだけ花札村にあるばあちゃんの家で札にさわったくらいで
 [NewLine]
-ルールとかも全然知らないし‥……」
+ルールとかも全然知らないし………」
 
 猿は別にして、この柳という妖怪はなんだか真剣に
 [NewLine]
@@ -234,7 +234,7 @@
 [CharaHide=柳」
 
 [TalkName=花緒]
-あんまりよくはないんだけど
+なんだかよく分からないけど………
 [NewLine]
 でもこのままだと花札村に行けないし
 
@@ -243,24 +243,52 @@
 [CharaHide=花緒]
 
 [BackGround=Talk_Hanafuda_1]
-「それじゃあ花緒　花札の事を少しだけ話すね」
+「それじゃあ花緒
+[NewLine]
+花札のこと少しだけ話すね」
 
-[BackGround=Talk_Hanafuda2]
-「花札は自分の手札と同じ柄の札を場札から
-取ることができるよ」
+[BackGround=Talk_Hanafuda_2]
+「花札は自分の手札と同じ柄の札を
+[NewLine]
+真ん中の場札から取って自分のものにすることができるよ」
 
-「同じ柄の札がある時は私がヒントとして
+「同じ柄の札があるときは私がヒントとして
+[NewLine]
 光らせるから参考にしてね」
 
-[BackGround=Talk_Hanafuda3]
-「取った札が増えて”役”が出来たら花緒の勝利だよ」
+[BackGround=Talk_Hanafuda_3]
+「取った札が増えて”役”っていうのが出来たら
+[NewLine]
+花緒の勝ちだよ」
 
-[BackGround=Talk_Hanafuda4]
-「役も私がヒントを出すからいつでも確認できるよ」
+[BackGround=Talk_Hanafuda_4]
+「役も私がいつでも見れるようにヒントを
+[NewLine]
+用意したから確認してね」
 
-[BackGround=Talk_Hanafuda5]
-「一緒にがんばろうね」
-[HanafudaStart]
+[BackGround=Talk_Hanafuda_5]
+「役を揃えてたくさん点数を稼ごう！
+[NewLine]
+一緒にがんばろうね！！」
+[Hanafuda_Start]
 
+[Hanafuda_End]
+[BackGround=In_Room]
+[Talk_Name=柳]
+[CharacterFace=柳、Yanagi_1_3]
+「おめでとう花緒
+[NewLine]
+これでやっと村に行けるね」
 
+[TalkName=花緒]
+[CharacterFace=花緒、Hanao_2_10]
+「うん………ありがとう」
+
+最近誰かとこういう風に
+[NewLine]
+遊んだりすることなかったもんなぁ………
+
+………すごく大変だったけど　少し楽しかったかも………
+
+[ChapterEnd]
 

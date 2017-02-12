@@ -7,8 +7,11 @@ public class TitleSelectButton : MonoBehaviour {
     [SerializeField]
     private TitleManager titleManager;
 
+    //[SerializeField]
+    //private InterruptionDialogManager interruptionDialog;
+
     private string nextSceneName;
-    private GameManager.STATE nextGameMangerState;
+    //private GameManager.STATE nextGameMangerState;
 
     // Use this for initialization
     void Start() {
@@ -21,26 +24,26 @@ public class TitleSelectButton : MonoBehaviour {
         switch (index) {
             case 0:
                 nextSceneName = SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT;
-                nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
+                //nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
                 break;
             case 1:
                 nextSceneName = SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT;
-                nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
+                //nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
                 break;
 
             case 2:
                 nextSceneName = SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT;
-                nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
+                //nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
                 break;
 
             case 3:
                 nextSceneName = SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT;
-                nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
+                //nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
                 break;
 
             case 4:
                 nextSceneName = SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT;
-                nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
+                //nextGameMangerState = GameManager.STATE.CHAPTER_SELECT;
                 break;
 
         }
@@ -51,6 +54,19 @@ public class TitleSelectButton : MonoBehaviour {
             FlickDicisionManager.Instance.SetState(FlickDicisionManager.STATE.BUTTON_INPUT);
 
             StartCoroutine(ButtonScaling(0.5f));
+
+            ////チャプター選択の場合
+            //if (nextSceneName == SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT) {
+
+            //    //セーブデータがある場合、保存されたデータを読み込む
+            //    if (SaveLoadManager.Instance.CheckHasSaveData()) {
+            //        InterruptionDialogManager.Instance.SwitchStatus(InterruptionDialogManager.STATE.Resumption);
+            //        Debug.Log("ダイアログ表示");
+
+            //    } else {
+            //        StartCoroutine(ButtonScaling(0.5f));
+            //    }
+            //}
         }
     }
 
@@ -67,8 +83,23 @@ public class TitleSelectButton : MonoBehaviour {
 
             if (onceSceneChange && lerp > 0.5f) {
                 onceSceneChange = false;
-                GameManager.Instance.state = nextGameMangerState;
-                FadeManager.Instance.LoadLevel(nextSceneName, GameManager.Instance.sceneChangeInterval);
+                //GameManager.Instance.state = nextGameMangerState;
+                //FadeManager.Instance.LoadLevel(nextSceneName, GameManager.Instance.sceneChangeInterval);
+
+                //チャプター選択の場合
+                if (nextSceneName == SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT) {
+
+                    //セーブデータがある場合、保存されたデータを読み込む
+                    if (nextSceneName == SceneName.SceneNameManager.SCENE_NAME_CHAPTER_SELECT &&
+                        SaveLoadManager.Instance.CheckHasSaveData()) {
+
+                        InterruptionDialogManager.Instance.SwitchStatus(InterruptionDialogManager.STATE.Resumption);
+
+                    }else {
+
+                        FadeManager.Instance.LoadLevel(nextSceneName, GameManager.Instance.sceneChangeInterval);
+                    }
+                }
             }
             image.color = Color.Lerp(image.color, Color.clear, lerp);
             transform.localScale = Vector3.Lerp(transform.localScale, titleManager.ON_BUTTON_SCALE_SIZE, lerp);

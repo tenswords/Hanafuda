@@ -11,5 +11,6 @@
         public const string ROLELIST_CANVAS = "RoleListCanvas";
         public const string EFFECT = "Effect";
         public const string SELECT_BUTTON = "SelectButton";
+        public const string FRONT_DIALOG = "FrontDialog";
     }
 }
