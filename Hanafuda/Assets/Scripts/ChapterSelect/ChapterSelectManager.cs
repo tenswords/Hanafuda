@@ -56,12 +56,13 @@ public class ChapterSelectManager : MonoBehaviour {
     public Vector2 TITLE_BUTTON_SCALE_SIZE;
 
     void Awake() {
-        GameManager.Instance.state = GameManager.STATE.CHAPTER_SELECT;
-        //InterruptionDialogManager.Instance.SetCanvasCamera();
+
     }
 
     // Use this for initialization
     void Start () {
+        GameManager.Instance.state = GameManager.STATE.CHAPTER_SELECT;
+        AudioManager.Instance.PlayBGM(AudioName.AudioNameManager.BGM_BGM_CHAPTERSELECT, true, 1.0f);
 
         FlickDicisionManager.Instance.SetState(FlickDicisionManager.STATE.WAIT_INPUT);
 
@@ -108,6 +109,7 @@ public class ChapterSelectManager : MonoBehaviour {
                     if (onceSettingValue) {
                         onceSettingValue = false;
                         SetNextMoveStatus();
+                        AudioManager.Instance.PlaySE(AudioName.AudioNameManager.SE_SE_TITLE);
                     }
 
                     FlickAnimation();
@@ -281,6 +283,7 @@ public class ChapterSelectManager : MonoBehaviour {
     }
     private IEnumerator WaitStoryTitleAnimation() {
         yield return new WaitForSeconds(0.5f);
+        AudioManager.Instance.PlaySE(AudioName.AudioNameManager.SE_SE_CHAPTERSELECT);
         storyTitleChapterImage.PlayViewAnimation();
     }
 
@@ -295,9 +298,5 @@ public class ChapterSelectManager : MonoBehaviour {
             isTap = false;
             storyTitleChapterImage.PlayFadeAnimation();
         }
-    }
-
-    public void StoryTitleFadeEndAnimation() {
-        FadeManager.Instance.LoadLevel(SceneName.SceneNameManager.SCENE_NAME_STORY, GameManager.Instance.sceneChangeInterval);
     }
 }

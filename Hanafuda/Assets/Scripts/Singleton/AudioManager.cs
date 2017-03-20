@@ -141,10 +141,30 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 		this.bgmSource.clip = null;
 	}
 
-	/// <summary>
-	/// SEを停止する
-	/// </summary>
-	public void StopSE ()
+    /// <summary>
+    /// BGMを徐々に停止する
+    /// </summary>
+    public void StopBGM(float interval) {
+        StartCoroutine(StopBGMFadeout(interval));
+    }
+
+    private IEnumerator StopBGMFadeout(float interval) {
+        var time = 0.0f;
+        while (time < interval) {
+            time += Time.deltaTime;
+            var lerp = Mathf.Lerp(1f,0f,time/interval);
+            this.bgmSource.volume = lerp;
+            yield return 0;
+        }
+
+        this.bgmSource.Stop();
+        this.bgmSource.clip = null;
+    }
+
+    /// <summary>
+    /// SEを停止する
+    /// </summary>
+    public void StopSE ()
 	{
 		this.seSources.ForEach (s => s.Stop ());
 	}

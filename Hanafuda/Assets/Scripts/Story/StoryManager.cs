@@ -11,6 +11,9 @@ public class StoryManager : MonoBehaviour {
     [SerializeField]
     private CommandManager commandManager;
 
+    [Header("主人公の名前")]
+    public string PLAYER_NAME = "花緒";
+
     public string CHAPTER_PATH = "Story/Chapter/";
     public string BACK_GROUND_PATH = "Story/BackGround/";
     public string CHARA_PATH = "Story/Character/";
@@ -43,6 +46,8 @@ public class StoryManager : MonoBehaviour {
     private float wardReadTime;
 
     [SerializeField]
+    private TextFieldImage textFieldImage;
+    [SerializeField]
     private Text textField_Text;
 
     [SerializeField]
@@ -52,6 +57,7 @@ public class StoryManager : MonoBehaviour {
     public Dictionary<string, Sprite> spriteDic;
     //会話しているキャラクターのディクショナリ
     public Dictionary<string, Image> talkCharaDic;
+    public List<string> talkCharaAlignment;
 
     //背景イメージ変数
     public Image backGround;
@@ -69,20 +75,23 @@ public class StoryManager : MonoBehaviour {
     private bool isWardRead;
 
     void Awake() {
-        GameManager.Instance.state = GameManager.STATE.STORY;
-        //InterruptionDialogManager.Instance.SetCanvasCamera();
+
     }
 
     // Use this for initialization
     void Start() {
+        GameManager.Instance.state = GameManager.STATE.STORY;
+        //InterruptionDialogManager.Instance.SetCanvasCamera();
 
         spriteDic = new Dictionary<string, Sprite>();
         talkCharaDic = new Dictionary<string, Image>();
+        talkCharaAlignment = new List<string>();
 
         isWaitStoryStarted = true;
 
         //セーブデータがある場合、保存されたデータを読み込む
-        if (SaveLoadManager.Instance.CheckHasSaveData()) {
+        if (SaveLoadManager.Instance.CheckHasSaveData() &&
+            SaveLoadManager.Instance.GetSaveScene() == SceneName.SceneNameManager.SCENE_NAME_STORY) {
             Resumption();
         }else {
             lineIndex = 0;            
@@ -95,7 +104,7 @@ public class StoryManager : MonoBehaviour {
     /// 中断ボタンを押したときに現在の状態を保存
     /// </summary>
     public void Interruption() {
-        InterruptionDialogManager.Instance.SwitchStatus(InterruptionDialogManager.STATE.Interruption);
+        InterruptionDialogManager.Instance.SwitchStatus(InterruptionDialogManager.STATE.INTERRUPTION);
 
         oldState = state;
         state = STATE.PAUSE;
@@ -119,40 +128,49 @@ public class StoryManager : MonoBehaviour {
         //行数の読み込み
         lineIndex = PlayerPrefs.GetInt(SaveLoadManager.Instance.SAVE_DATA_LINE_INDEX);
 
-        //背景の読み込み
-        var backGroundName = PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_BACK_GROUND);
-        commandManager.SetImage(backGroundName, backGround, BACK_GROUND_PATH);
-        backGround.color = Color.white;
-
-        //キャラデータの読み込み
-        if (PlayerPrefs.HasKey(SaveLoadManager.Instance.SAVE_DATA_TALK_CHARA_LIST)) {
-            var talkCharaList = PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_TALK_CHARA_LIST);
-            var charaDataSplit = talkCharaList.Split("、"[0]);
-            for (int i = 0; i < charaDataSplit.Length - 1; i++) {
-                var charaData = charaDataSplit[i];
-
-                var data = charaData.Split("："[0]);
-                var charaName = data[0];
-                var spliteName = data[1];
-
-                commandManager.AddTalkChara(charaName);
-                commandManager.SetImage(spliteName, talkCharaDic[charaName], CHARA_PATH);
-                talkCharaDic[charaName].color = Color.white;
-
-            }
+        if (PlayerPrefs.HasKey(SaveLoadManager.Instance.SAVE_DATA_BACK_GROUND)) {
+            //背景の読み込み
+            var backGroundName = PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_BACK_GROUND);
+            commandManager.SetImage(backGroundName, backGround, BACK_GROUND_PATH);
+            backGround.color = Color.white;
         }
 
         //話しているキャラの読み込み（話しているキャラクター以外を暗くするため）
         if (PlayerPrefs.HasKey(SaveLoadManager.Instance.SAVE_DATA_TALK_CHARA_NAME)) {
             var talkCharaName = PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_TALK_CHARA_NAME);
-            commandManager.SetNonTalkCharaColor(talkCharaName);
+
+            var s_name = talkCharaName.Split("、"[0]);
+            commandManager.SetCharaImageColor(s_name);
+        }
+
+        //キャラデータの読み込み
+        if (PlayerPrefs.HasKey(SaveLoadManager.Instance.SAVE_DATA_TALK_CHARA_LIST)) {
+            var talkCharaList = PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_TALK_CHARA_LIST);
+            var charaDataSplit = talkCharaList.Split(":"[0]);
+            for (int i = 0; i < charaDataSplit.Length - 1; i++) {
+
+                var data = charaDataSplit[i].Split("、"[0]);
+                var charaName = data[0];
+                var spliteName = data[1];
+
+                commandManager.AddTalkChara(charaName);
+                commandManager.SetImage(spliteName, talkCharaDic[charaName], CHARA_PATH);
+                talkCharaDic[charaName].gameObject.SetActive(true);
+                talkCharaDic[charaName].color = Color.white;
+
+            }
         }
     }
 
     public void StoryStart() {
         storyNo = GameManager.Instance.storyNo;
+        Debug.Log("storyNo " + storyNo);
         selectChapterName = CHAPTER_PATH + "Chapter_" + storyNo;
+
+        Debug.Log("selectChapterName " + selectChapterName);
+
         var textAsset = (TextAsset)Resources.Load(selectChapterName);
+        Debug.Log("textAsset " + textAsset);
         lineText = textAsset.ToString().Split("\n"[0]);
 
         isWardRead = true;
@@ -188,61 +206,74 @@ public class StoryManager : MonoBehaviour {
     /// </summary>
     private void ReadText() {
 
-        //今読み込む行が改行のみだったら次の行へ進む
- //       if (!isLineRead) {
+    //今読み込む行が改行のみだったら次の行へ進む
+//       if (!isLineRead) {
 
-            //1行分を取得
-            line = lineText[lineIndex];
+        //1行分を取得
+        line = lineText[lineIndex];
 
-            if (line.Length == 1) {
-                lineIndex++;
+        if (line.Length == 1) {
+            lineIndex++;
+        } else {
+            isLineRead = false;
+            //    }
+
+            //} else {
+
+            //読み込んだ1行の文字列にコマンド用の文字が含まれている場合、どのコマンドかを解析して対応した処理を行う
+            if (commandManager.IsContainsCommandWard(line)) {
+
+                var command = commandManager.GetCommand(line, 0);
+                commandManager.CommandAnalize(command);
+
             } else {
-                isLineRead = false;
-                //    }
 
-                //} else {
+                if (isWardRead) {
 
-                //読み込んだ1行の文字列にコマンド用の文字が含まれている場合、どのコマンドかを解析して対応した処理を行う
-                if (commandManager.IsContainsCommandWard(line)) {
+                    var ward = line.Substring(wardIndex, 1);
+                    //コマンド用の文字ではない場合、文字の表示を行う
+                    textField_Text.text += ward;
+                    wardIndex++;
+                    //1行の最後まで読み込んだら、プレイヤーのTAP待ちにする（NextButton点滅）
+                    if (wardIndex == (line.Length - 1)) {
 
-                    var command = commandManager.GetCommand(line, 0);
-                    commandManager.CommandAnalize(command);
-
-                } else {
-
-                    if (isWardRead) {
-
-                        var ward = line.Substring(wardIndex, 1);
-                        //コマンド用の文字ではない場合、文字の表示を行う
-                        textField_Text.text += ward;
-                        wardIndex++;
-                        //1行の最後まで読み込んだら、プレイヤーのTAP待ちにする（NextButton点滅）
-                        if (wardIndex == (line.Length - 1)) {
-
-                            //次の行を読み込み改行コマンドであった場合、さらに次の行へ進むための処理
-                            var nextLine = lineText[lineIndex + 1];
-                            var nextWard = nextLine.Substring(0, 1);
-                            if (commandManager.IsContainsCommandWard(nextWard)) {
-                                //読み込んだ1文字がコマンド用の文字の場合、どのコマンドかを解析して対応した処理を行う
-                                var command = commandManager.GetCommand(nextLine);
+                        //次の行を読み込み改行コマンドであった場合、さらに次の行へ進むための処理
+                        var nextLine = lineText[lineIndex + 1];
+                        var nextWard = nextLine.Substring(0, 1);
+                        if (commandManager.IsContainsCommandWard(nextWard)) {
+                            //読み込んだ1文字がコマンド用の文字の場合、どのコマンドかを解析して対応した処理を行う
+                            var command = commandManager.GetCommand(nextLine);
+                            if (commandManager.IsNewLineCommand(command)) {
                                 commandManager.CommandAnalize(command);
-
                             } else {
                                 isLineEnd = true;
                             }
-                        }
 
+                        } else {
+                            isLineEnd = true;
+                        }
+                    }
+
+                    if (!textFieldImage.GetIsLongPress()) {
                         if (isLineEnd) {
                             isLineEnd = false;
                             state = STATE.WAIT_NEXT;
-                            textField_NextButton.SetActive(true);
+
+                            StartCoroutine(WaitNextButtonIsActive(0.3f));
                         }
 
                         StartCoroutine(WaitOneWardRead(MAX_ONE_WARD_READ_TIME));
+
+                    } else {
+                        if (isLineEnd) {
+                            isLineEnd = false;
+                            CommandNewLine();
+                        }
                     }
                 }
             }
-        //}
+        }
+    //}
     }
 
     /// <summary>
@@ -270,11 +301,21 @@ public class StoryManager : MonoBehaviour {
                 line = lineText[lineIndex];
 
                 LineTextShowAll();
+
+            }else {
+                state = STATE.WAIT_NEXT;
+                StartCoroutine(WaitNextButtonIsActive(0.3f));
             }
+
         }else {
             state = STATE.WAIT_NEXT;
-            textField_NextButton.SetActive(true);
+            StartCoroutine(WaitNextButtonIsActive(0.3f));
         }
+    }
+    
+    private IEnumerator WaitNextButtonIsActive(float waitTime) {
+        yield return new WaitForSeconds(waitTime);
+        textField_NextButton.SetActive(true);
     }
 
     private IEnumerator WaitOneWardRead(float waitTime) {

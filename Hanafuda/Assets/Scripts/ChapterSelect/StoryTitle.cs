@@ -12,12 +12,8 @@ public class StoryTitle : MonoBehaviour {
     [SerializeField]
     private Vector3 FADE_TARGET_SCALE_SIZE;
 
-    private Animator animator;
-
     // Use this for initialization
     void Start() {
-        animator = GetComponent<Animator>();
-
     }
 
     // Update is called once per frame
@@ -43,6 +39,9 @@ public class StoryTitle : MonoBehaviour {
             if(callName == "Fade") {
                 if (onceSceneChange && lerp > 0.5f) {
                     onceSceneChange = false;
+                    AudioManager.Instance.StopBGM(0.5f);
+                    AudioManager.Instance.StopSE();
+
                     GameManager.Instance.state = GameManager.STATE.STORY;
                     FadeManager.Instance.LoadLevel(SceneName.SceneNameManager.SCENE_NAME_STORY, GameManager.Instance.sceneChangeInterval);
                 }

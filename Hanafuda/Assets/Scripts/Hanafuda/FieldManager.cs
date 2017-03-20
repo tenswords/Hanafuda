@@ -7,7 +7,9 @@ public class FieldManager : MonoBehaviour {
 
     [SerializeField]
     private CardManager cardManager;
-
+    [SerializeField]
+    private ScoreManager scoreManager;
+    
     [SerializeField]
     private Player player;
     [SerializeField]
@@ -17,6 +19,9 @@ public class FieldManager : MonoBehaviour {
     [SerializeField]
     private GetCardField getCardField;
 
+    [SerializeField, Header("対局開始イメージ")]
+    private Image gameStartImage;
+
     [SerializeField]
     private GameObject dialogCanvas;
 
@@ -24,7 +29,7 @@ public class FieldManager : MonoBehaviour {
     private GameObject hideBlackImage;
 
     [SerializeField]
-    private GameObject koikoiDialog;
+    private KoiKoiDialog koikoiDialog;
 
     [SerializeField]
     private GameObject deck;
@@ -47,8 +52,9 @@ public class FieldManager : MonoBehaviour {
     [Header("現在のターンプレイヤー")]
     public TURNPLAYER turnPlayer;
     public enum TURNPLAYER {
-        PLAYER = 0,
-        COM = 1
+        NONE = 0,
+        PLAYER = 1,
+        COM = 2
     }
 
     //ゲーム中の状態
@@ -58,6 +64,7 @@ public class FieldManager : MonoBehaviour {
         READY,
         DECK_SHUFLE,
         CARD_HAND_OUT,
+        SAME_MONTH_MOVE,
         WAIT_SELECT_CARD,
         TURN_PLAYER_SELECT_CARD,
         DECK_CARD_PUT_FIELD,
@@ -95,10 +102,11 @@ public class FieldManager : MonoBehaviour {
     public List<string> establishRole_FlushList = new List<string>();
 
     [SerializeField]
-    private EstablishRoleImage establishRoleImage;
+    private Image establishRoleImage;
 
     [SerializeField]
     private Sprite[] roleNameImageList;
+    public string[][] arrayRoleType;
     public Dictionary<string, Sprite> roleNameImage_Dic = new Dictionary<string, Sprite>();
     public Dictionary<string, int> roleScore_Dic = new Dictionary<string, int>();
 
@@ -132,37 +140,52 @@ public class FieldManager : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
-        handoutCounter = 0;
-        handCardTimer = HANDCARD_MAXTIMER;
-        turnPlayer = TURNPLAYER.PLAYER;
 
-        roleNameImage_Dic.Add(Role.RoleManager.SANKOU, roleNameImageList[0]);
-        roleNameImage_Dic.Add(Role.RoleManager.YONKOU, roleNameImageList[1]);
-        roleNameImage_Dic.Add(Role.RoleManager.AMEYONKOU, roleNameImageList[2]);
-        roleNameImage_Dic.Add(Role.RoleManager.GOKOU, roleNameImageList[3]);
-        roleNameImage_Dic.Add(Role.RoleManager.INOSHIKATYOU, roleNameImageList[4]);
-        roleNameImage_Dic.Add(Role.RoleManager.TUKIMIZAKE, roleNameImageList[5]);
-        roleNameImage_Dic.Add(Role.RoleManager.HANAMIZAKE, roleNameImageList[6]);
-        roleNameImage_Dic.Add(Role.RoleManager.TANE, roleNameImageList[7]);
-        roleNameImage_Dic.Add(Role.RoleManager.AKATANZAKU, roleNameImageList[8]);
-        roleNameImage_Dic.Add(Role.RoleManager.AOTANZAKU, roleNameImageList[9]);
-        roleNameImage_Dic.Add(Role.RoleManager.TANZAKU, roleNameImageList[10]);
-        roleNameImage_Dic.Add(Role.RoleManager.KASU, roleNameImageList[11]);
+        GameManager.Instance.state = GameManager.STATE.HANAFUDA;
 
-        roleScore_Dic.Add(Role.RoleManager.SANKOU, Role.RoleManager.SCORE_SANKOU);
-        roleScore_Dic.Add(Role.RoleManager.YONKOU, Role.RoleManager.SCORE_YONKOU);
-        roleScore_Dic.Add(Role.RoleManager.AMEYONKOU, Role.RoleManager.SCORE_AMEYONKOU);
-        roleScore_Dic.Add(Role.RoleManager.GOKOU, Role.RoleManager.SCORE_GOKOU);
-        roleScore_Dic.Add(Role.RoleManager.INOSHIKATYOU, Role.RoleManager.SCORE_INOSHIKATYOU);
-        roleScore_Dic.Add(Role.RoleManager.TUKIMIZAKE, Role.RoleManager.SCORE_TUKIMIZAKE);
-        roleScore_Dic.Add(Role.RoleManager.HANAMIZAKE, Role.RoleManager.SCORE_HANAMIZAKE);
-        roleScore_Dic.Add(Role.RoleManager.TANE, Role.RoleManager.SCORE_TANE);
-        roleScore_Dic.Add(Role.RoleManager.AKATANZAKU, Role.RoleManager.SCORE_AKATANZAKU);
-        roleScore_Dic.Add(Role.RoleManager.AOTANZAKU, Role.RoleManager.SCORE_AOTANZAKU);
-        roleScore_Dic.Add(Role.RoleManager.TANZAKU, Role.RoleManager.SCORE_TANZAKU);
-        roleScore_Dic.Add(Role.RoleManager.KASU, Role.RoleManager.SCORE_KASU);
+        if (state != STATE.RESULT) {
 
-        StartCoroutine(WaitNextState(1.0f, STATE.DECK_SHUFLE));
+            AudioManager.Instance.PlayBGM(AudioName.AudioNameManager.BGM_BGM_CHAPTER2_3, true, 1.0f);
+
+            handoutCounter = 0;
+            handCardTimer = HANDCARD_MAXTIMER;
+            turnPlayer = TURNPLAYER.PLAYER;
+
+            roleNameImage_Dic.Add(Role.RoleManager.SANKOU, roleNameImageList[0]);
+            roleNameImage_Dic.Add(Role.RoleManager.YONKOU, roleNameImageList[1]);
+            roleNameImage_Dic.Add(Role.RoleManager.AMEYONKOU, roleNameImageList[2]);
+            roleNameImage_Dic.Add(Role.RoleManager.GOKOU, roleNameImageList[3]);
+            roleNameImage_Dic.Add(Role.RoleManager.INOSHIKATYOU, roleNameImageList[4]);
+            roleNameImage_Dic.Add(Role.RoleManager.TUKIMIZAKE, roleNameImageList[5]);
+            roleNameImage_Dic.Add(Role.RoleManager.HANAMIZAKE, roleNameImageList[6]);
+            roleNameImage_Dic.Add(Role.RoleManager.TANE, roleNameImageList[7]);
+            roleNameImage_Dic.Add(Role.RoleManager.AKATANZAKU, roleNameImageList[8]);
+            roleNameImage_Dic.Add(Role.RoleManager.AOTANZAKU, roleNameImageList[9]);
+            roleNameImage_Dic.Add(Role.RoleManager.TANZAKU, roleNameImageList[10]);
+            roleNameImage_Dic.Add(Role.RoleManager.KASU, roleNameImageList[11]);
+
+            roleScore_Dic.Add(Role.RoleManager.SANKOU, Role.RoleManager.SCORE_SANKOU);
+            roleScore_Dic.Add(Role.RoleManager.YONKOU, Role.RoleManager.SCORE_YONKOU);
+            roleScore_Dic.Add(Role.RoleManager.AMEYONKOU, Role.RoleManager.SCORE_AMEYONKOU);
+            roleScore_Dic.Add(Role.RoleManager.GOKOU, Role.RoleManager.SCORE_GOKOU);
+            roleScore_Dic.Add(Role.RoleManager.INOSHIKATYOU, Role.RoleManager.SCORE_INOSHIKATYOU);
+            roleScore_Dic.Add(Role.RoleManager.TUKIMIZAKE, Role.RoleManager.SCORE_TUKIMIZAKE);
+            roleScore_Dic.Add(Role.RoleManager.HANAMIZAKE, Role.RoleManager.SCORE_HANAMIZAKE);
+            roleScore_Dic.Add(Role.RoleManager.TANE, Role.RoleManager.SCORE_TANE);
+            roleScore_Dic.Add(Role.RoleManager.AKATANZAKU, Role.RoleManager.SCORE_AKATANZAKU);
+            roleScore_Dic.Add(Role.RoleManager.AOTANZAKU, Role.RoleManager.SCORE_AOTANZAKU);
+            roleScore_Dic.Add(Role.RoleManager.TANZAKU, Role.RoleManager.SCORE_TANZAKU);
+            roleScore_Dic.Add(Role.RoleManager.KASU, Role.RoleManager.SCORE_KASU);
+
+            arrayRoleType = new string[][] { new string[]{ Role.RoleManager.GOKOU, Role.RoleManager.YONKOU, Role.RoleManager.AMEYONKOU, Role.RoleManager.SANKOU },
+                                            new string[]{ Role.RoleManager.HANAMIZAKE, Role.RoleManager.TUKIMIZAKE, Role.RoleManager.INOSHIKATYOU, Role.RoleManager.TANE },
+                                            new string[]{ Role.RoleManager.AKATANZAKU, Role.RoleManager.AOTANZAKU, Role.RoleManager.TANZAKU },
+                                            new string[]{ Role.RoleManager.KASU }
+                                            };
+
+            //StartCoroutine(WaitNextState(1.0f, STATE.DECK_SHUFLE));
+            StartCoroutine(StartGame());
+        }
     }
 
     // Update is called once per frame
@@ -172,6 +195,7 @@ public class FieldManager : MonoBehaviour {
             case STATE.READY: break;
             case STATE.DECK_SHUFLE: DeckShufle(); break;
             case STATE.CARD_HAND_OUT: CardHandOut(); break;
+            case STATE.SAME_MONTH_MOVE: SameMonthMove(); break;
             case STATE.WAIT_SELECT_CARD: break;
             case STATE.TURN_PLAYER_SELECT_CARD: SelectCard_Move(); break;
             case STATE.DECK_CARD_PUT_FIELD: DeckCardPutField(); break;
@@ -186,29 +210,130 @@ public class FieldManager : MonoBehaviour {
             case STATE.PAUSE: break;
         }
     }
+
+    /// <summary>
+    /// 対局開始のアニメーション再生
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator StartGame() {
+        yield return new WaitForSeconds(1.0f);
+
+        var time = 0.0f;
+        var interval = 1.0f;
+        var targetScale = new Vector3(1.0f,1.0f,1.0f);
+        var rect = gameStartImage.GetComponent<RectTransform>();
+
+        gameStartImage.gameObject.SetActive(true);
+
+        while (time<interval) {
+            time += Time.deltaTime;
+            var lerp = Mathf.Lerp(0f, 1f, time / interval);
+            rect.localScale = Vector3.Lerp(rect.localScale, targetScale,lerp);
+            gameStartImage.color = Color.Lerp(gameStartImage.color, Color.white, lerp);
+            yield return 0;
+        }
+
+        yield return new WaitForSeconds(1.0f);
+
+        time = 0.0f;
+        interval = 1.0f;
+        targetScale = new Vector3(2.0f, 2.0f, 2.0f);
+
+        while (time < interval) {
+            time += Time.deltaTime;
+            var lerp = Mathf.Lerp(0f, 1f, time / interval);
+            rect.localScale = Vector3.Lerp(rect.localScale, targetScale, lerp);
+            gameStartImage.color = Color.Lerp(gameStartImage.color, Color.clear, lerp);
+            yield return 0;
+        }
+
+        gameStartImage.gameObject.SetActive(false);
+
+        state = STATE.DECK_SHUFLE;
+    }
+
     /// <summary>
     /// 山札をランダムに並び替える
     /// </summary>
     private void DeckShufle() {
-        Debug.Log("FieldManager DeckShufle");
+        //Debug.Log("FieldManager DeckShufle");
         //（とりあえず100回シャッフル）
+
         for (int i = 0; i < 100; i++) {
             var change1 = Random.Range(0, deck.transform.childCount);
             var change2 = Random.Range(0, deck.transform.childCount);
             deck.transform.GetChild(change1).SetSiblingIndex(change2);
         }
-        state = STATE.CARD_HAND_OUT;
+
+        //フィールドに４枚、同じ月のカードが配られる場合は再びシャッフル
+        if (CheckSameMonthCard()) {
+            DeckShufle();
+            Debug.Log("フィールドに４枚、同じ月のカードが配られるため　再びシャッフル");
+        } else {
+            state = STATE.CARD_HAND_OUT;
+        }
     }
 
+    /// <summary>
+    /// シャッフル時にフィールドに同じ月のカードが４枚配られるかどうかを取得
+    /// </summary>
+    /// <returns></returns>
+    private bool CheckSameMonthCard() {
+
+        var sameMonthIndexList = new List<int>();
+        var checkMonthList = new List<Card.MONTH>();
+        var checkCount = 3;
+        var startIndex = 0;
+        var startIndex_tmp = 0;
+
+        for (int i = 0; i < 8 - checkCount; i++) {
+
+            if (i / 4 == 0) startIndex = 4;
+            else if (i / 4 == 1) startIndex = 16;
+
+            var d_card = deck.transform.GetChild(startIndex + (i % 4)).GetComponent<Card>();
+
+            //現在のカードの月を一度もチェックしていない場合
+            if (!checkMonthList.Contains(d_card.month)) {
+                checkMonthList.Add(d_card.month);
+
+                sameMonthIndexList.Clear();
+                sameMonthIndexList.Add(i);
+
+                for (int j = i + 1; j < 8 + (-checkCount + sameMonthIndexList.Count); j++) {
+                    if (j / 4 == 0) startIndex_tmp = 4;
+                    else if (j / 4 == 1) startIndex_tmp = 16;
+
+                    var d_card_tmp = deck.transform.GetChild(startIndex_tmp + (j % 4)).GetComponent<Card>();
+
+                    if (d_card.month == d_card_tmp.month) {
+                        sameMonthIndexList.Add(j);
+                        if (sameMonthIndexList.Count == 4) return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+    private List<int> sameMonthIndexList = new List<int>();
     /// <summary>
     /// カードを配る処理
     /// </summary>
     private void CardHandOut() {
-        Debug.Log("FieldManager CardHandOut");
+        //Debug.Log("FieldManager CardHandOut");
         if (handoutCounter == 24) {
             //全てのカードが指定の座標まで移動しきっていたら、ゲーム状態に変更
             if (player.GetIsHandOutMovement() && cpu.GetIsHandOutMovement() && field.GetIsHandOutMovement()) {
-                state = STATE.WAIT_SELECT_CARD;
+
+                //フィールドに同じ月のカードが３枚ある場合は、それらのカードを合わせてから次へ進む処理
+                sameMonthIndexList = GetSameMonthIndexList();
+                if (sameMonthIndexList != null) {
+                    state = STATE.SAME_MONTH_MOVE;
+                } else {
+                    state = STATE.WAIT_SELECT_CARD;
+                }
             }
         } else {
 
@@ -253,12 +378,146 @@ public class FieldManager : MonoBehaviour {
     }
 
     /// <summary>
+    /// 山札から配られた際に同じ月のカードが、フィールドに３枚あるかどうかを取得
+    /// </summary>
+    /// <returns></returns>
+    private List<int> GetSameMonthIndexList() {
+
+        var sameMonthIndexList = new List<int>();
+        var checkMonthList = new List<Card.MONTH>();
+        var checkCount = 2;
+
+        for (int i=0; i<field.fieldCard_Dic.Count-4- checkCount; i++) {
+
+            var f_card = field.fieldCard_Dic[i][0].GetComponent<Card>();
+
+            //現在のカードの月を一度もチェックしていない場合
+            if (!checkMonthList.Contains(f_card.month)) {
+                checkMonthList.Add(f_card.month);
+
+                sameMonthIndexList.Clear();
+                sameMonthIndexList.Add(i);
+
+                for (int j = i + 1; j < field.fieldCard_Dic.Count - 4 + (-checkCount + sameMonthIndexList.Count); j++) {
+                    var f_card_tmp = field.fieldCard_Dic[j][0].GetComponent<Card>();
+
+                    if (f_card.month == f_card_tmp.month) {
+                        sameMonthIndexList.Add(j);
+                        if (sameMonthIndexList.Count == 3) return sameMonthIndexList;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
+    private bool onceIsSame;
+    private bool isSameMove;
+    private bool isSameTarget;
+    private Vector3 targetMovePosition;
+    /// <summary>
+    /// 同じ月のカードが３枚ある場合、カードを動かす処理
+    /// </summary>
+    private void SameMonthMove() {
+
+        if (!onceIsSame) {
+            onceIsSame = true;
+            StartCoroutine(WaitSameMonth());
+        }
+
+        if (isSameMove) {
+            if (!isSameTarget) {
+                isSameTarget = true;
+                targetMovePosition = field.fieldCard_Dic[sameMonthIndexList[0]][0].transform.position;
+
+                //描画順の変更
+                for (int i = 1; i < sameMonthIndexList.Count; i++) {
+                    //描画順の変更
+                    var targetCard = field.fieldCard_Dic[sameMonthIndexList[i]][0];
+                    cardManager.SetCardOrderInLayer(targetCard, i);
+                }
+            }
+
+            var isEndMoveCount = 0;
+            for (int i = 1; i < sameMonthIndexList.Count; i++) {
+                var targetCard = field.fieldCard_Dic[sameMonthIndexList[i]][0];
+                //目標の座標まで動かす
+                targetCard.transform.position = Vector3.MoveTowards(targetCard.transform.position,
+                                                                    targetMovePosition,
+                                                                    Time.deltaTime * cardMoveSpeed);
+
+                if (targetCard.transform.position == targetMovePosition) {
+                    isEndMoveCount++;
+                }
+            }
+
+            //全て移動し終えていたら、プレイヤーのタッチ待ちにする
+            if (isEndMoveCount == sameMonthIndexList.Count - 1) {
+                state = STATE.WAIT_SELECT_CARD;
+
+                //合わせる場所にカードを追加
+                for (int i = 1; i < sameMonthIndexList.Count; i++) {
+                    var targetCard = field.fieldCard_Dic[sameMonthIndexList[i]][0];
+                    //合わせる場所にカードを追加
+                    field.fieldCard_Dic[sameMonthIndexList[0]].Add(targetCard);
+                    field.fieldCard_Dic[sameMonthIndexList[i]].Clear();
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 同じ月のカードを移動させるた
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator WaitSameMonth() {
+        yield return new WaitForSeconds(0.25f);
+        isSameMove = true;
+    }
+
+
+    private bool isTurnChange;
+    /// <summary>
     /// ターンが切り替わる時の初期化処理
     /// </summary>
     private void TurnChange() {
 
+        //プレイヤーの手札とCPUの手札が０枚になった場合、対局終了となる
+        if (player.GetHandCardCount() == 0 && cpu.GetHandCardCount() == 0) {
+
+            //koikoiDialog.gameObject.SetActive(true);
+            scoreManager.turnPlayerScore = 0;
+            koikoiDialog.OnAgariButton();
+
+        } else {
+
+            if (!isTurnChange) {
+                isTurnChange = true;
+                StartCoroutine(WaitTurnChange());
+            }
+            //Debug.Log("ターンチェンジ");
+            //if (turnPlayer == TURNPLAYER.PLAYER) turnPlayer = TURNPLAYER.COM;
+            //else if (turnPlayer == TURNPLAYER.COM) turnPlayer = TURNPLAYER.PLAYER;
+
+            //switch (turnPlayer) {
+            //    case TURNPLAYER.PLAYER:
+            //        player.Initialize();
+            //        break;
+            //    case TURNPLAYER.COM:
+            //        break;
+            //}
+            //state = STATE.WAIT_SELECT_CARD;
+            //Initialize();
+        }
+    }
+
+    private IEnumerator WaitTurnChange() {
+        
+        yield return new WaitForSeconds(0.2f);
+
         Debug.Log("ターンチェンジ");
-        if(turnPlayer == TURNPLAYER.PLAYER) turnPlayer = TURNPLAYER.COM;
+        if (turnPlayer == TURNPLAYER.PLAYER) turnPlayer = TURNPLAYER.COM;
         else if (turnPlayer == TURNPLAYER.COM) turnPlayer = TURNPLAYER.PLAYER;
 
         switch (turnPlayer) {
@@ -268,10 +527,10 @@ public class FieldManager : MonoBehaviour {
             case TURNPLAYER.COM:
                 break;
         }
-
         state = STATE.WAIT_SELECT_CARD;
-
         Initialize();
+
+        isTurnChange = false;
     }
 
     /// <summary>
@@ -360,6 +619,11 @@ public class FieldManager : MonoBehaviour {
                 cardManager.SetCardSortingLayer(getCard, SortingLayer.SortingLayerManager.GET_CARD_FIELD);
                 //cardManager.SetCardOrderInLayer(getCard, 0);
             }
+
+            //foreach (var getCard in getCardList) {
+            //    //今回ゲットしたカードを場のカードリストから削除する
+            //    field.RemoveCard(getCard);
+            //}
 
             state = STATE.GET_CARD_MOVE;
         }
@@ -459,19 +723,21 @@ public class FieldManager : MonoBehaviour {
             //getFieldCardList.Count == 0　・・・　デッキから場に出るカードで場のカードを取れない場合
             //fieldのisputがfalseになっているところから、ランダムで選んで場に出す
             var isPutList = field.GetPutField();
-            putIndex = isPutList[Random.Range(0,isPutList.Count)];
+
+            //置ける場所がない場合、プレイヤーが選択した場所に置く
+            if (isPutList.Count == 0) {
+                putIndex = field.selectCardIndex;
+            } else {
+                putIndex = isPutList[Random.Range(0, isPutList.Count)];
+            }
 
             SetMoveCardStatus(deckCard, field.fieldPosition[putIndex], Vector3.zero, field.cardScale, STATE.DECK_CARD_MOVE);
 
-            //var _deckCard = new List<GameObject>();
-            //_deckCard.Add(deckCard);
-            //field.fieldCard_Dic[putIndex] = _deckCard;
             field.fieldCard_Dic[putIndex].Add(deckCard);
             deckCard.transform.parent = field.transform;
             cardManager.SetCardTag(deckCard, TAG.TagManager.FIELD_CARD);
             cardManager.SetCardSortingLayer(deckCard, SortingLayer.SortingLayerManager.FIELD_CARD);
             cardManager.SetCardOrderInLayer(deckCard, 4);
-
         } else {
             //1枚だけの場合
             if (field.getCardPutIndexList.Count == 1) {
@@ -511,7 +777,27 @@ public class FieldManager : MonoBehaviour {
                         break;
 
                     case TURNPLAYER.COM://CPUのターンだったら、役が作れそうなら役を作る、作れないならランダムで選ぶ
+                        //とりあえずランダム
                         Debug.Log("CPUデッキから出たときに複数ある");
+
+
+                        //putIndex = field.getCardPutIndexList[0];
+                        //getCardList.Add(deckCard);
+
+                        ////場の対応した番号にあるカードを全て取得リストに追加
+                        //for (int i = 0; i < field.fieldCard_Dic[putIndex].Count; i++) {
+                        //    getCardList.Add(field.fieldCard_Dic[putIndex][i]);
+                        //}
+
+                        //SetMoveCardStatus(deckCard, field.fieldPosition[putIndex], Vector3.zero, field.cardScale, STATE.DECK_CARD_MOVE);
+
+                        //deckCard.transform.parent = field.transform;
+                        //cardManager.SetCardTag(deckCard, TAG.TagManager.FIELD_CARD);
+                        //cardManager.SetCardSortingLayer(deckCard, SortingLayer.SortingLayerManager.FIELD_CARD);
+                        //cardManager.SetCardOrderInLayer(deckCard, 4);
+
+
+
                         break;
                 }
 
@@ -522,6 +808,13 @@ public class FieldManager : MonoBehaviour {
             }
 
         }
+
+    }
+
+    /// <summary>
+    /// デッキから出るときに置ける場所がなかった場合、プレイヤーのカードの移動が終わってから移動
+    /// </summary>
+    private void WaitDeckPutMove() {
 
     }
 
@@ -602,15 +895,52 @@ public class FieldManager : MonoBehaviour {
         //スコア加算処理
         switch (turnPlayer) {
             case FieldManager.TURNPLAYER.PLAYER:
-                player.score += roleScore_Dic[roleName];
+
+                //今回成立した役が光系であり、自分の成立済み役リストの中に他の光系の役がある場合、
+                //その役のスコアを取り消し、リストからも削除する
+                if (roleName.Contains("光")) {
+                    var hikariName = player.GetFlushListHikari();
+                    //光系の役があった場合
+                    if(hikariName != "") {
+                        //player.score -= roleScore_Dic[roleName];
+                        player.flushList.Remove(roleName);
+                    }
+                }
+                //新規の役の場合、役とスコアを登録
+                //同じ役がある場合、登録されている役のスコアを＋１する
+                if (!player.flushList.ContainsKey(roleName)) {
+                    //player.score += roleScore_Dic[roleName];
+                    player.flushList.Add(roleName, roleScore_Dic[roleName]);
+                    //player.establishRole_FlushScoreList.Add(roleScore_Dic[roleName]);
+                } else {
+                    player.flushList[roleName] += 1;
+                }
+
                 break;
             case FieldManager.TURNPLAYER.COM:
-                cpu.score += roleScore_Dic[roleName];
+
+                //今回成立した役が光系であり、自分の成立済み役リストの中に他の光系の役がある場合、
+                //その役のスコアを取り消し、リストからも削除する
+                if (roleName.Contains("光")) {
+                    var hikariName = cpu.GetFlushListHikari();
+                    //光系の役があった場合
+                    if (hikariName != "") {
+                        //cpu.score -= roleScore_Dic[roleName];
+                        cpu.flushList.Remove(roleName);
+                    }
+                }
+                //新規の役の場合、役とスコアを登録
+                //同じ役がある場合、登録されている役のスコアを＋１する
+                if (!cpu.flushList.ContainsKey(roleName)) {
+                    //cpu.score += roleScore_Dic[roleName];
+                    cpu.flushList.Add(roleName, roleScore_Dic[roleName]);
+                    //cpu.establishRole_FlushScoreList.Add(roleScore_Dic[roleName]);
+                } else {
+                    cpu.flushList[roleName] += 1;
+                }
                 break;
         }
     }
-
-
 
     /// <summary>
     /// 役成立時の処理
@@ -619,10 +949,62 @@ public class FieldManager : MonoBehaviour {
         dialogCanvas.SetActive(true);
         hideBlackImage.SetActive(true);
 
-        establishRoleImage.SetEstablishRoleFlushCount(establishRole_FlushList.Count);
-        PlayEstablishRoleAnimation();
-        //establishRoleImage.StartAnimation(getCardField.establishRoleSList[establishRoleIndex][2]);
+        //establishRoleImage.SetEstablishRoleFlushCount(establishRole_FlushList.Count);
+        //PlayEstablishRoleAnimation();
+
         state = STATE.WAIT_ESTABLISHROLE_ANIMATION;
+        StartCoroutine(PlayEstablishRoleAnimation());
+        //state = STATE.WAIT_ESTABLISHROLE_ANIMATION;
+    }
+
+    //public void PlayEstablishRoleAnimation() {
+    //    establishRoleImage.SetRoleName(establishRole_FlushList[establishRoleIndex]);
+    //    establishRoleImage.gameObject.SetActive(true);
+    //}
+
+    /// <summary>
+    /// あがり役のアニメーション再生
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator PlayEstablishRoleAnimation() {
+        var time = 0.0f;
+        var interval = 2.0f;
+        var targetScale = new Vector3(1.5f, 1.5f, 1.5f);
+        var rect = establishRoleImage.GetComponent<RectTransform>();
+
+        var roleName = establishRole_FlushList[establishRoleIndex];
+        establishRoleImage.sprite = roleNameImage_Dic[roleName];
+
+        establishRoleImage.gameObject.SetActive(true);
+
+        while (time < interval) {
+            time += Time.deltaTime;
+            var lerp = Mathf.Lerp(0f, 1f, time / interval);
+            rect.localScale = Vector3.Lerp(rect.localScale, targetScale, lerp);
+            establishRoleImage.color = Color.Lerp(establishRoleImage.color, Color.white, lerp);
+            yield return 0;
+        }
+
+        time = 0.0f;
+        interval = 0.5f;
+        while (time < interval) {
+            time += Time.deltaTime;
+            var lerp = Mathf.Lerp(0f, 1f, time / interval);
+            establishRoleImage.color = Color.Lerp(establishRoleImage.color, Color.clear, lerp);
+            yield return 0;
+        }
+
+        establishRoleIndex++;
+        gameStartImage.gameObject.SetActive(false);
+        rect.localScale = Vector3.zero;
+
+        yield return new WaitForSeconds(0.2f);
+
+        if (establishRoleIndex == establishRole_FlushList.Count) {
+            EstablishRole_EndAnimation();
+        }else {
+            StartCoroutine(PlayEstablishRoleAnimation());
+        }
     }
 
     /// <summary>
@@ -637,22 +1019,48 @@ public class FieldManager : MonoBehaviour {
             case TURNPLAYER.PLAYER:
                 //プレイヤーのターンだったら、こいこいするかどうかのダイアログを表示
                 hideBlackImage.SetActive(false);
-                koikoiDialog.SetActive(true);
+
+                scoreManager.turnPlayerScore = player.GetTotalScore();
+
+                koikoiDialog.SetScoreText();
+                //koikoiDialog.gameObject.SetActive(true);
+                StartCoroutine(KoiKoiDialogView(0.25f));
                 break;
 
             case TURNPLAYER.COM:
                 //CPUのターンだったら
-                //手札が3枚よりも多い場合、必ずこいこいする
-                //手札が3枚以下の場合、今の手札と場のカードを調べてあがれる役があるならこいこいする、ないならあがる
+                //手札が1枚よりも多い場合、必ずこいこいする
+                scoreManager.turnPlayerScore = cpu.GetTotalScore();
 
+                if (cpu.GetHand().Count > 1) {
+                    koikoiDialog.OnKoiKoiButton();
+                }else {
+                    koikoiDialog.OnAgariButton();
+                }
                 //state = FieldManager.STATE.TURNCHANGE;
                 break;
         }
     }
 
-    public void PlayEstablishRoleAnimation() {
-        establishRoleImage.SetRoleName(establishRole_FlushList[establishRoleIndex]);
-        establishRoleImage.gameObject.SetActive(true);
+    private IEnumerator KoiKoiDialogView(float interval) {
+        var time = 0.0f;
+        var rect = koikoiDialog.GetComponent<RectTransform>();
+
+        while (time < interval) {
+            time += Time.deltaTime;
+            var lerp = Mathf.Lerp(0f, 1f,time/interval);
+
+            rect.localScale = Vector3.Lerp(rect.localScale, Vector3.one, lerp);
+            yield return 0;
+        }
+
+        rect.localScale = Vector3.one;
     }
 
+    public Player GetPlayer() {
+        return player;
+    }
+    public Cpu GetCPU() {
+        return cpu;
+    }    
 }

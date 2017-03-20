@@ -15,7 +15,13 @@ public class Player : MonoBehaviour {
     private Field field;
 
     //得点
-    public int score;
+    //public int score;
+    //役成立済みリスト
+    public Dictionary<string,int> flushList = new Dictionary<string, int>();
+    ////役成立済みリスト
+    //public List<string> establishRole_FlushNameList;
+    ////役成立済みリスト
+    //public List<int> establishRole_FlushScoreList;
 
     [SerializeField]
     private List<GameObject> hand = new List<GameObject>();
@@ -179,7 +185,7 @@ public class Player : MonoBehaviour {
         getCardList_Dic.Clear();
         nonGetCardList_Dic.Clear();
 
-        Debug.Log("Player SetGetCardList");
+        //Debug.Log("Player SetGetCardList");
         for (int i = 0; i < hand.Count; i++) {
             var myCard = hand[i].GetComponent<Card>();
 
@@ -208,5 +214,62 @@ public class Player : MonoBehaviour {
                 nonGetCardList_Dic.Add(hand[i], nonGetCardList);
             }
         }
+    }
+
+    /// <summary>
+    /// 成立済みリストの中に光系の役があるかチェックし、ある場合、その役を取得
+    /// </summary>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    public string GetFlushListHikari() {
+        //foreach (var establishRole in establishRole_FlushList) {
+        //    if (establishRole.Contains("光")) {
+        //        return establishRole;
+        //    }
+        //}
+        //return "";
+
+        
+        foreach (var establishRoleData in flushList) {
+            if (establishRoleData.Key.Contains("光")) {
+                return establishRoleData.Key;
+            }
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// 現在のトータルスコアを取得
+    /// </summary>
+    /// <returns></returns>
+    public int GetTotalScore() {
+        var score = 0;
+        foreach (var data in flushList) {
+            score += flushList[data.Key];
+        }
+        return score;
+    }
+
+    public Dictionary<string ,int> GetFlushList() {
+        return flushList;
+    }
+
+    public void SetFlushList(string[] flushSplit) {
+        for (int i = 0; i < flushSplit.Length - 1; i++) {
+
+            var data = flushSplit[i].Split("、"[0]);
+            var flushText = data[0];
+            var flushScore = data[1];
+
+            flushList.Add(flushText, int.Parse(flushScore));
+        }
+    }
+
+    /// <summary>
+    /// 手札の枚数を取得
+    /// </summary>
+    /// <returns></returns>
+    public int GetHandCardCount() {
+        return hand.Count;
     }
 }

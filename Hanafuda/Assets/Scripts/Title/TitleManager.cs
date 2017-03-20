@@ -24,6 +24,8 @@ public class TitleManager : MonoBehaviour {
     [SerializeField]
     private float moveSpeed;
 
+    private Dictionary<GameObject, Image> textImage_Dic;
+
     private Dictionary<GameObject, bool> isMove_Dic;
     private Dictionary<GameObject, Image> buttonImage_Dic;
 
@@ -36,16 +38,19 @@ public class TitleManager : MonoBehaviour {
     public Vector3 ON_BUTTON_SCALE_SIZE;
 
     void Awake() {
-        GameManager.Instance.state = GameManager.STATE.TITLE;
-        //InterruptionDialogManager.Instance.SetCanvasCamera();
+
     }
 
     // Use this for initialization
     void Start() {
+        GameManager.Instance.state = GameManager.STATE.TITLE;
+        AudioManager.Instance.PlayBGM(AudioName.AudioNameManager.BGM_BGM_TITLE, true, 1.0f);
 
         FlickDicisionManager.Instance.SetState(FlickDicisionManager.STATE.WAIT_INPUT);
 
         CENTER_INDEX = selectButtonList.Length / 2;
+
+        textImage_Dic = new Dictionary<GameObject, Image>();
 
         isMove_Dic = new Dictionary<GameObject, bool>();
         buttonImage_Dic = new Dictionary<GameObject, Image>();
@@ -60,6 +65,9 @@ public class TitleManager : MonoBehaviour {
 
             var buttonObject = selectButtonList[i].gameObject;
             isMove_Dic.Add(buttonObject, true);
+
+            var textImage = buttonObject.transform.GetChild(0).GetComponent<Image>();
+            textImage_Dic.Add(buttonObject,textImage);
 
             var image = buttonObject.GetComponent<Image>();
             buttonImage_Dic.Add(buttonObject, image);
@@ -92,6 +100,7 @@ public class TitleManager : MonoBehaviour {
                 onceSettingValue = false;
                 SortArrayValue();
                 SetNextMoveStatus();
+                AudioManager.Instance.PlaySE(AudioName.AudioNameManager.SE_SE_TITLE);
             }
 
             FlickAnimation();
@@ -99,12 +108,13 @@ public class TitleManager : MonoBehaviour {
     }
 
     /// <summary>
-    /// 配列の中身をフリックした方向にずらす
+    /// フリック後の情報を設定
     /// </summary>
     private void SortArrayValue() {
 
         //ボタン押下の可否を設定
         selectButtonList[CENTER_INDEX].enabled = false;
+        StartCoroutine(TextImageScaling(textImage_Dic[selectButtonList[CENTER_INDEX].gameObject], 0.0f, false));
 
         if (FlickDicisionManager.Instance.flickkDirection == FlickDicisionManager.FLICK_DIRECTION.LEFT) {
             var sortIndex = 0;
@@ -188,6 +198,7 @@ public class TitleManager : MonoBehaviour {
             }
         }
 
+        //isMove==True 全てのボタンの移動アニメーションが終了している状態
         if (isMove) {
             onceSettingValue = true;
             FlickDicisionManager.Instance.SetState(FlickDicisionManager.STATE.WAIT_INPUT);
@@ -195,7 +206,34 @@ public class TitleManager : MonoBehaviour {
 
             //ボタン押下の可否を設定
             selectButtonList[CENTER_INDEX].enabled = true;
+
+            StartCoroutine(TextImageScaling(textImage_Dic[selectButtonList[CENTER_INDEX].gameObject], 1.0f, true));
         }
 
+    }
+
+    private IEnumerator TextImageScaling(Image textImage,float scaleSize,bool isActive) {
+        var time = 0.0f;
+        var interval = 0.5f;
+
+        var targetScale = Vector3.one * scaleSize;
+        var targetColor = Color.white * scaleSize;
+
+        if(isActive) textImage.gameObject.SetActive(isActive);
+
+        while (time<interval) {
+            time += Time.deltaTime;
+            var lerp = Mathf.Lerp(0f, 1f, time / interval);
+            textImage.transform.localScale = Vector3.Lerp(textImage.transform.localScale,targetScale, time / interval);
+            textImage.color = Color.Lerp(textImage.color, targetColor, time / interval);
+
+            yield return 0;
+        }
+
+        if (!isActive) textImage.gameObject.SetActive(isActive);
+    }
+
+    public void SetTextImageIsActive(GameObject buttonObj) {
+        textImage_Dic[buttonObj].gameObject.SetActive(false);
     }
 }

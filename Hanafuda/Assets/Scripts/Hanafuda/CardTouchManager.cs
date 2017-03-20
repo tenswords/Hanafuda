@@ -47,107 +47,111 @@ public class CardTouchManager : MonoBehaviour {
     /// </summary>
     private void WaitSelectCard() {
 
-        if (Input.GetMouseButtonUp(0)) {
-            Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            var collider = Physics2D.OverlapPoint(touchPosition);
-            Debug.Log("collider " + collider);
+        //プレイヤーのターンだったら
+        if (fieldManager.turnPlayer == FieldManager.TURNPLAYER.PLAYER) {
 
-            //場のカードを取れないカードを選択している用のコライダー
-            var layerMask = 1 << LayerMask.NameToLayer("FieldSpace");
-            //var fieldSpaceCllider = Physics2D.OverlapPoint(touchPosition, layerMask);
 
-            var isFieldSpace = false;
-            var fieldSpaceCllider = Physics2D.OverlapPointAll(touchPosition, layerMask);
-            foreach (var col in fieldSpaceCllider) {
-                if (col.tag == TAG.TagManager.FIELD_SPACE) {
-                    isFieldSpace = true;
-                }
-            }
+            if (Input.GetMouseButtonUp(0)) {
+                Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                var collider = Physics2D.OverlapPoint(touchPosition);
+                //Debug.Log("collider " + collider);
 
-            //isFieldSpaceがtrueの場合、"FieldSpace"をタッチした
-            if (isFieldSpace) {
+                //場のカードを取れないカードを選択している用のコライダー
+                var layerMask = 1 << LayerMask.NameToLayer("FieldSpace");
+                //var fieldSpaceCllider = Physics2D.OverlapPoint(touchPosition, layerMask);
 
-                //fieldの各場所を調べて、何もカードが置かれていないところから、ランダムで選んで場に出す
-                var isPutList = field.GetPutField();
-                var putIndex = isPutList[Random.Range(0, isPutList.Count)];
-
-                field.SetSelectCardIndex(putIndex);
-
-                fieldManager.SetMoveCardStatus(selectCard,
-                               field.fieldPosition[putIndex],
-                               Vector3.zero,
-                               field.cardScale,
-                               FieldManager.STATE.TURN_PLAYER_SELECT_CARD);
-
-                //場のカードの色を明るくする
-                foreach (var index in player.nonGetCardList_Dic[selectCard]) {
-                    fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], true);
+                var isFieldSpace = false;
+                var fieldSpaceCllider = Physics2D.OverlapPointAll(touchPosition, layerMask);
+                foreach (var col in fieldSpaceCllider) {
+                    if (col.tag == TAG.TagManager.FIELD_SPACE) {
+                        isFieldSpace = true;
+                    }
                 }
 
-                //カードエフェクトを消す
-                foreach (var data in player.getCardList_Dic) {
-                    var cardEffect = data.Key.transform.GetChild(0).gameObject;
-                    cardManager.SetCardEffectIsActive(cardEffect, false);
-                }
+                //isFieldSpaceがtrueの場合、"FieldSpace"をタッチした
+                if (isFieldSpace) {
 
-                //選択したカードを場に追加
-                //var _selectCard = new List<GameObject>();
-                //_selectCard.Add(selectCard);
-                //field.fieldCard_Dic[putIndex] = _selectCard;
-                player.RemoveCard(selectCard);
-                field.fieldCard_Dic[putIndex].Add(selectCard);
+                    //fieldの各場所を調べて、何もカードが置かれていないところから、ランダムで選んで場に出す
+                    var isPutList = field.GetPutField();
+                    var putIndex = isPutList[Random.Range(0, isPutList.Count)];
 
-                selectCard.transform.parent = field.transform;
-                cardManager.SetCardTag(selectCard, TAG.TagManager.FIELD_CARD);
-                cardManager.SetCardSortingLayer(selectCard, SortingLayer.SortingLayerManager.FIELD_CARD);
-                cardManager.SetCardOrderInLayer(selectCard, 3);
+                    field.SetSelectCardIndex(putIndex);
 
-                fieldManager.playerSelectCard = selectCard;
-                selectCard = null;
-                fieldManager.SetFieldColliderActive(false);
+                    fieldManager.SetMoveCardStatus(selectCard,
+                                   field.fieldPosition[putIndex],
+                                   Vector3.zero,
+                                   field.cardScale,
+                                   FieldManager.STATE.TURN_PLAYER_SELECT_CARD);
 
-            } else {
+                    //場のカードの色を明るくする
+                    foreach (var index in player.nonGetCardList_Dic[selectCard]) {
+                        fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], true);
+                    }
 
-                if (collider) {
+                    //カードエフェクトを消す
+                    foreach (var data in player.getCardList_Dic) {
+                        var cardEffect = data.Key.transform.GetChild(0).gameObject;
+                        cardManager.SetCardEffectIsActive(cardEffect, false);
+                    }
 
-                    switch (collider.tag) {
-                        case TAG.TagManager.PLAYER_HAND_FORE:
-                            //タッチした場所のカードのタグが選択されているプレイヤーの手札の場合
-                            //選択されているカードをキャンセルする
-                            ReturnOldSelectCard();
-                            selectCard = null;
-                            fieldManager.SetFieldColliderActive(false);
-                            break;
+                    //選択したカードを場に追加
+                    //var _selectCard = new List<GameObject>();
+                    //_selectCard.Add(selectCard);
+                    //field.fieldCard_Dic[putIndex] = _selectCard;
+                    player.RemoveCard(selectCard);
+                    field.fieldCard_Dic[putIndex].Add(selectCard);
 
-                        case TAG.TagManager.PLAYER_HAND:
-                            //タッチした場所のカードのタグがプレイヤーの手札の場合
-                            //強調されているカードがあれば、元に戻し新たに選択したカードを強調させる
-                            SelectPlayerHandCard(collider.gameObject);
-                            break;
+                    selectCard.transform.parent = field.transform;
+                    cardManager.SetCardTag(selectCard, TAG.TagManager.FIELD_CARD);
+                    cardManager.SetCardSortingLayer(selectCard, SortingLayer.SortingLayerManager.FIELD_CARD);
+                    cardManager.SetCardOrderInLayer(selectCard, 3);
 
-                        case TAG.TagManager.FIELD_CARD:
-                            //タッチした場所のカードのタグが場のカードの場合
-                            //プレイヤーのカードが選択されている、かつ
-                            //選択されているカードでそのカードが取れるなら、カードを取る処理
-                            //それ以外では何もしない
-                            if(selectCard != null) SelectFieldCard(collider.gameObject);
+                    fieldManager.playerSelectCard = selectCard;
+                    selectCard = null;
+                    fieldManager.SetFieldColliderActive(false);
 
-                            break;
+                } else {
 
-                        default:
-                            //取ったカードリスト
-                            break;
+                    if (collider) {
+
+                        switch (collider.tag) {
+                            case TAG.TagManager.PLAYER_HAND_FORE:
+                                //タッチした場所のカードのタグが選択されているプレイヤーの手札の場合
+                                //選択されているカードをキャンセルする
+                                ReturnOldSelectCard();
+                                selectCard = null;
+                                fieldManager.SetFieldColliderActive(false);
+                                break;
+
+                            case TAG.TagManager.PLAYER_HAND:
+                                //タッチした場所のカードのタグがプレイヤーの手札の場合
+                                //強調されているカードがあれば、元に戻し新たに選択したカードを強調させる
+                                SelectPlayerHandCard(collider.gameObject);
+                                break;
+
+                            case TAG.TagManager.FIELD_CARD:
+                                //タッチした場所のカードのタグが場のカードの場合
+                                //プレイヤーのカードが選択されている、かつ
+                                //選択されているカードでそのカードが取れるなら、カードを取る処理
+                                //それ以外では何もしない
+                                if (selectCard != null) SelectFieldCard(collider.gameObject);
+
+                                break;
+
+                            default:
+                                //取ったカードリスト
+                                break;
+                        }
                     }
                 }
             }
-        }
 
-        if (Input.touchCount > 0) {
-            Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            var collider = Physics2D.OverlapPoint(touchPosition);
-            Debug.Log("collider " + collider);
+            if (Input.touchCount > 0) {
+                Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                var collider = Physics2D.OverlapPoint(touchPosition);
+                Debug.Log("collider " + collider);
+            }
         }
-
     }
 
     /// <summary>
@@ -251,30 +255,34 @@ public class CardTouchManager : MonoBehaviour {
     /// </summary>
     private void WaitFieldSelectCard() {
 
-        if (Input.GetMouseButtonUp(0)) {
-            Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            var collider = Physics2D.OverlapPoint(touchPosition);
-            Debug.Log("collider " + collider);
+        //プレイヤーのターンだったら
+        if (fieldManager.turnPlayer == FieldManager.TURNPLAYER.PLAYER) {
 
-            if (collider) {
+            if (Input.GetMouseButtonUp(0)) {
+                Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                var collider = Physics2D.OverlapPoint(touchPosition);
+                Debug.Log("collider " + collider);
 
-                switch (collider.tag) {
+                if (collider) {
 
-                    case TAG.TagManager.FIELD_CARD:
-                        fieldManager.FieldSelectCard(collider.gameObject);
-                    break;
+                    switch (collider.tag) {
 
-                    default:
-                        //取ったカードリスト
-                        break;
+                        case TAG.TagManager.FIELD_CARD:
+                            fieldManager.FieldSelectCard(collider.gameObject);
+                            break;
+
+                        default:
+                            //取ったカードリスト
+                            break;
+                    }
                 }
             }
-        }
 
-        if (Input.touchCount > 0) {
-            Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            var collider = Physics2D.OverlapPoint(touchPosition);
-            Debug.Log("collider " + collider);
+            if (Input.touchCount > 0) {
+                Vector3 touchPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                var collider = Physics2D.OverlapPoint(touchPosition);
+                Debug.Log("collider " + collider);
+            }
         }
     }
 

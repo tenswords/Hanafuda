@@ -12,7 +12,13 @@ public class Cpu : MonoBehaviour {
     private Field field;
 
     //得点
-    public int score;
+    //public int score;
+    //役成立済みリスト
+    public Dictionary<string, int> flushList = new Dictionary<string, int>();
+    ////役成立済みリスト
+    //public List<string> establishRole_FlushNameList;
+    ////役成立済みリスト
+    //public List<int> establishRole_FlushScoreList;
 
     private Dictionary<GameObject, float> handCardTargetMaxDistance_Dic = new Dictionary<GameObject, float>();
     private Dictionary<GameObject, Vector3> handCardTargePosition_Dic = new Dictionary<GameObject, Vector3>();
@@ -126,11 +132,11 @@ public class Cpu : MonoBehaviour {
         getCardList_Dic.Clear();
         nonGetCardList_Dic.Clear();
 
-        for (int j = 0; j < field.fieldCard_Dic.Count; j++) {
-            Debug.Log("field.fieldCard_Dic[j].Count" + field.fieldCard_Dic[j].Count);
-        }
+        //for (int j = 0; j < field.fieldCard_Dic.Count; j++) {
+        //    Debug.Log("field.fieldCard_Dic[j].Count" + field.fieldCard_Dic[j].Count);
+        //}
 
-        Debug.Log("CPU SetGetCardList");
+        //Debug.Log("CPU SetGetCardList");
         for (int i = 0; i < hand.Count; i++) {
             var myCard = hand[i].GetComponent<Card>();
 
@@ -220,13 +226,73 @@ public class Cpu : MonoBehaviour {
     /// デッキから場に出るときに取得できるカードを選択する処理
     /// </summary>
     private void WaitFieldSelectCard() {
-
-
-
-        //とりあえずランダムでカードを選ぶ
-        var randomIndex = Random.Range(0, field.getCardPutIndexList.Count);
-        fieldManager.FieldSelectCard(randomIndex);
+        //COMのターンだったら
+        if (fieldManager.turnPlayer == FieldManager.TURNPLAYER.COM) {
+            //とりあえずランダムでカードを選ぶ
+            var randomIndex = Random.Range(0, field.getCardPutIndexList.Count);
+            fieldManager.FieldSelectCard(randomIndex);
+        }
     }
 
 
+    public List<GameObject> GetHand() {
+        return hand;
+    }
+
+    /// <summary>
+    /// 成立済みリストの中に光系の役があるかチェックし、ある場合、その役を取得
+    /// </summary>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    public string GetFlushListHikari() {
+        //foreach (var establishRole in establishRole_FlushList) {
+        //    if (establishRole.Contains("光")) {
+        //        return establishRole;
+        //    }
+        //}
+        //return "";
+
+
+        foreach (var establishRoleData in flushList) {
+            if (establishRoleData.Key.Contains("光")) {
+                return establishRoleData.Key;
+            }
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// 現在のトータルスコアを取得
+    /// </summary>
+    /// <returns></returns>
+    public int GetTotalScore() {
+        var score = 0;
+        foreach (var data in flushList) {
+            score += flushList[data.Key];
+        }
+        return score;
+    }
+
+    public Dictionary<string, int> GetFlushList() {
+        return flushList;
+    }
+
+    public void SetFlushList(string[] flushSplit) {
+        for (int i = 0; i < flushSplit.Length - 1; i++) {
+
+            var data = flushSplit[i].Split("、"[0]);
+            var flushText = data[0];
+            var flushScore = data[1];
+
+            flushList.Add(flushText, int.Parse(flushScore));
+        }
+    }
+
+    /// <summary>
+    /// 手札の枚数を取得
+    /// </summary>
+    /// <returns></returns>
+    public int GetHandCardCount() {
+        return hand.Count;
+    }
 }

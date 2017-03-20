@@ -5,5 +5,6 @@ namespace SceneName {
         public const string SCENE_NAME_CHAPTER_SELECT = "ChapterSelect";
         public const string SCENE_NAME_STORY = "Story";
         public const string SCENE_NAME_HANAFUDA = "Hanafuda";
+        public const string SCENE_NAME_TEST = "NoLoding";
     }
 }

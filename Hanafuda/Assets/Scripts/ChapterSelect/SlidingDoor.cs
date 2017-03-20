@@ -59,6 +59,7 @@ public class SlidingDoor : MonoBehaviour {
             RIGHT_DOOR_TARGET_POSITION = defaultRightDoorPosition;
 
             StartCoroutine(WaitSlidingDoorOpenAnimation());
+            AudioManager.Instance.PlaySE(AudioName.AudioNameManager.SE_SE_CHAPTERSELECT2);
 
         } else if (callName == "Open") {
             chapterSelectManager.SlidingDoorOpen();

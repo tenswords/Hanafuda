@@ -152,7 +152,7 @@ public class Card : MonoBehaviour {
         }
 
         for (int i=0;i< split_Name.Length; i++) {
-            Debug.Log(split_Name[i]);
+            //Debug.Log(split_Name[i]);
             switch(i){
                 case 0:
                      

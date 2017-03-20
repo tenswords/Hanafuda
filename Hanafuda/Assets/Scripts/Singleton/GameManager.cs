@@ -6,10 +6,6 @@ public class GameManager : SingletonMonoBehaviour<GameManager> {
 
     [Header("シーン変更時のフェード時間")]
     public float sceneChangeInterval;
-
-    //[SerializeField]
-    //private InterruptionDialog interruptionDialog;
-
     //ゲーム全体の状態
     public STATE state;
 

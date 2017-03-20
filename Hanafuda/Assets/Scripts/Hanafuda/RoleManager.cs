@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using UnityEngine;
+using System.Collections.Generic;
 
 namespace Role {
     public class RoleManager {
@@ -21,7 +22,7 @@ namespace Role {
         public const string TANZAKU = "タン";
 
         public const string KASU = "カス";
-        
+
         public const int SCORE_SANKOU = 5;
         public const int SCORE_YONKOU = 8;
         public const int SCORE_AMEYONKOU = 7;
@@ -37,6 +38,5 @@ namespace Role {
         public const int SCORE_TANZAKU = 1;
 
         public const int SCORE_KASU = 1;
-
     }
 }

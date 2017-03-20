@@ -10,7 +10,7 @@ public class Field : MonoBehaviour {
     private CardManager cardManager;
 
     private Dictionary<GameObject, float> handCardTargetMaxDistance_Dic = new Dictionary<GameObject, float>();
-    private Dictionary<GameObject, Vector3> handCardTargePosition_Dic = new Dictionary<GameObject, Vector3>();
+    private Dictionary<GameObject, Vector3> handCardTargetPosition_Dic = new Dictionary<GameObject, Vector3>();
 
     public Dictionary<int, List<GameObject>> fieldCard_Dic = new Dictionary<int, List<GameObject>>();
     public Dictionary<int, Vector3> fieldPosition = new Dictionary<int, Vector3>();
@@ -87,11 +87,11 @@ public class Field : MonoBehaviour {
 
                 //目標の座標まで動かす
                 targetCard.transform.position = Vector3.MoveTowards(targetCard.transform.position,
-                                                                handCardTargePosition_Dic[targetCard],
+                                                                handCardTargetPosition_Dic[targetCard],
                                                                 Time.deltaTime * fieldManager.handCardSpeed);
 
                 //目標までの距離に近づくにつれて、大きさを変える
-                var distance = Vector3.Distance(targetCard.transform.position, handCardTargePosition_Dic[targetCard]);
+                var distance = Vector3.Distance(targetCard.transform.position, handCardTargetPosition_Dic[targetCard]);
                 var distanceLeap = Mathf.Lerp(1f, 0f, distance / handCardTargetMaxDistance_Dic[targetCard]);
                 targetCard.transform.localScale = Vector3.Lerp(targetCard.transform.localScale, cardScale, distanceLeap);
 
@@ -119,17 +119,15 @@ public class Field : MonoBehaviour {
     /// ゲーム開始時の場に追加される処理
     /// </summary>
     public void AddCard(GameObject card) {
+
         var pos = fieldPosition[addCardIndex];
         var maxDistance = Vector3.Distance(card.transform.position, pos);
 
-        //var cardList = new List<GameObject>();
-        //cardList.Add(card);
-        //fieldCard_Dic[addCardIndex] = cardList;
         fieldCard_Dic[addCardIndex].Add(card);
         addCardIndex++;
 
         handCardTargetMaxDistance_Dic.Add(card, maxDistance);
-        handCardTargePosition_Dic.Add(card, pos);
+        handCardTargetPosition_Dic.Add(card, pos);
         card.transform.parent = transform;
 
         //タグと描画順を変更
@@ -163,7 +161,7 @@ public class Field : MonoBehaviour {
     public bool GetIsHandOutMovement() {
 
         foreach (var card in fieldCard_Dic[0]) {
-            if (card.transform.position != handCardTargePosition_Dic[card]) {
+            if (card.transform.position != handCardTargetPosition_Dic[card]) {
                 return false;
             }
         }

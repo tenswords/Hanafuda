@@ -201,10 +201,10 @@ public class GetCardField : MonoBehaviour {
                 var roleName = establishRoleSList[i][2];
                 var state = establishRoleSList[i][3];
 
-                Debug.Log("typeIndex " + typeIndex);
-                Debug.Log("typeSearchTextIndex " + typeSearchTextIndex);
-                Debug.Log("roleName " + roleName);
-                Debug.Log("state " + state);
+                //Debug.Log("typeIndex " + typeIndex);
+                //Debug.Log("typeSearchTextIndex " + typeSearchTextIndex);
+                //Debug.Log("roleName " + roleName);
+                //Debug.Log("state " + state);
 
                 var targetTypeObject = getCardFieldObject_Dic[typeIndex].transform.GetChild(typeSearchTextIndex).gameObject;
                 var roleImage = targetTypeObject.GetComponent<Image>();
@@ -248,7 +248,7 @@ public class GetCardField : MonoBehaviour {
         establishRole[3] = state;
         establishRoleSList.Add(establishRole);
 
-        Debug.Log("establishRole " + establishRole[0]+establishRole[1]+establishRole[2]+establishRole[3]);
+        //Debug.Log("establishRole " + establishRole[0]+establishRole[1]+establishRole[2]+establishRole[3]);
 
     }
 
@@ -311,8 +311,8 @@ public class GetCardField : MonoBehaviour {
         //カードリストの中に小野道風が含まれているかどうかを取得
         var isOno_GetCardList = GetIsTargetDivision(getCard_Dic[index], Card.DIVISION.ONO);
 
-        Debug.Log("getCard_Dic[index].Count " + getCard_Dic[index].Count);
-        if (getCard_Dic[index].Count != 0) Debug.Log("getCard_Dic[index][0].name " + getCard_Dic[index][0].name);
+        //Debug.Log("getCard_Dic[index].Count " + getCard_Dic[index].Count);
+        //if (getCard_Dic[index].Count != 0) Debug.Log("getCard_Dic[index][0].name " + getCard_Dic[index][0].name);
 
         switch (getCard_Dic[index].Count) {
             case 1:

@@ -7,7 +7,7 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
     //ストーリー時のマネージャー
     private StoryManager storyManager;
     //花札時のマネージャー
-    //private StoryManager storyManager;
+    private HanafudaManager hanafudaManager;
 
     [SerializeField]
     private Canvas canvas;
@@ -22,8 +22,8 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
 
     public STATE state;
     public enum STATE {
-        Interruption = 0,
-        Resumption = 1
+        INTERRUPTION = 0,
+        RESUMPTION = 1
     }
 
     void Awake() {
@@ -59,7 +59,7 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
         interruptionDialog.SetActive(false);
 
         switch (state) {
-            case STATE.Interruption: //中断時
+            case STATE.INTERRUPTION: //中断時
 
                 switch (GameManager.Instance.state) {
                     case GameManager.STATE.STORY:
@@ -68,7 +68,7 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
 
                         var talkCharaList = "";
                         foreach (var chara in storyManager.talkCharaDic) {
-                            talkCharaList += chara.Key + "：" + chara.Value.sprite.name + "、";
+                            talkCharaList += chara.Key + "、" + chara.Value.sprite.name + ":";
                         }
                         SaveLoadManager.Instance.SetStorySaveData(
                             SceneName.SceneNameManager.SCENE_NAME_STORY,
@@ -87,13 +87,19 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
                 FadeManager.Instance.LoadLevel(SceneName.SceneNameManager.SCENE_NAME_TITLE,1.0f);
                 break;
 
-            case STATE.Resumption: //再開時
+            case STATE.RESUMPTION: //再開時
 
                 //保存されたシーンに移行
+                Debug.Log("a " + PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_SCENE_NAME));
+
                 switch (PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_SCENE_NAME)) {
                     case SceneName.SceneNameManager.SCENE_NAME_STORY:
                         //ストーリーへ移行
                         FadeManager.Instance.LoadLevel(SceneName.SceneNameManager.SCENE_NAME_STORY, GameManager.Instance.sceneChangeInterval);
+                        break;
+                    case SceneName.SceneNameManager.SCENE_NAME_HANAFUDA:
+                        //花札へ移行
+                        FadeManager.Instance.LoadLevel(SceneName.SceneNameManager.SCENE_NAME_HANAFUDA, GameManager.Instance.sceneChangeInterval);
                         break;
                 }
                 break;
@@ -108,7 +114,7 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
         interruptionDialog.SetActive(false);
 
         switch (state) {
-            case STATE.Interruption: //中断時
+            case STATE.INTERRUPTION: //中断時
 
                 switch (GameManager.Instance.state) {
                     case GameManager.STATE.STORY:
@@ -120,7 +126,7 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
                 }
 
                 break;
-            case STATE.Resumption: //再開時
+            case STATE.RESUMPTION: //再開時
 
                 switch (PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_SCENE_NAME)) {
                     case SceneName.SceneNameManager.SCENE_NAME_STORY:
@@ -144,5 +150,12 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
             storyManager = GameObject.Find("StoryManager").GetComponent<StoryManager>();
         }
     }
-
+    /// <summary>
+    /// 花札マネージャーを参照していなければ、参照させる
+    /// </summary>
+    private void ReferHanafudaManager() {
+        if (hanafudaManager == null) {
+            hanafudaManager = GameObject.Find("HanafudaManager").GetComponent<HanafudaManager>();
+        }
+    }
 }

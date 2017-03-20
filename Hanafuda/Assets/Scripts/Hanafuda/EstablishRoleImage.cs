@@ -44,7 +44,7 @@ public class EstablishRoleImage : MonoBehaviour {
 
         } else {
             gameObject.SetActive(false);
-            fieldManager.PlayEstablishRoleAnimation();
+            //fieldManager.PlayEstablishRoleAnimation();
         }
     }
 }

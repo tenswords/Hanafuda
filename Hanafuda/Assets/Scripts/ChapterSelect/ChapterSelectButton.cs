@@ -48,6 +48,8 @@ public class ChapterSelectButton : MonoBehaviour {
 
             if (nextSceneName == SceneName.SceneNameManager.SCENE_NAME_TITLE) {
                 //タイトルを選んだ場合
+                AudioManager.Instance.StopBGM(0.5f);
+
                 mirrorSurfaceObject.SetActive(false);
                 StartCoroutine(OnTitleButton(1.0f));
 
