@@ -903,7 +903,7 @@ public class FieldManager : MonoBehaviour {
                     //光系の役があった場合
                     if(hikariName != "") {
                         //player.score -= roleScore_Dic[roleName];
-                        player.flushList.Remove(roleName);
+                        player.flushList.Remove(hikariName);
                     }
                 }
                 //新規の役の場合、役とスコアを登録
@@ -926,7 +926,7 @@ public class FieldManager : MonoBehaviour {
                     //光系の役があった場合
                     if (hikariName != "") {
                         //cpu.score -= roleScore_Dic[roleName];
-                        cpu.flushList.Remove(roleName);
+                        cpu.flushList.Remove(hikariName);
                     }
                 }
                 //新規の役の場合、役とスコアを登録

@@ -15,6 +15,7 @@ public class SaveLoadManager : SingletonMonoBehaviour<SaveLoadManager> {
     public string SAVE_DATA_TALK_CHARA_NAME = "talkCharaName";
     public string SAVE_DATA_TALK_CHARA_LIST = "talkCharaList";
     public string SAVE_DATA_BACK_GROUND = "backGround";
+    public string SAVE_DATA_BGM_NAME = "BGM_Name";
 
     public string SAVE_DATA_WIN_PLAYER = "winPlayer";
     public string SAVE_DATA_FLUSH_DATA = "flushData";
@@ -30,6 +31,7 @@ public class SaveLoadManager : SingletonMonoBehaviour<SaveLoadManager> {
     public string saveData_TalkCharaName;
     public string saveData_TalkCharaList;
     public string saveData_BackGround;
+    public string saveData_BGMName;
 
     public string saveData_WinPlayer;
     public string saveData_FlushData;
@@ -49,8 +51,9 @@ public class SaveLoadManager : SingletonMonoBehaviour<SaveLoadManager> {
     /// <summary>
     /// ストーリー時のセーブデータを登録
     /// </summary>
-    public void SetStorySaveData(string sceneName,int storyNo, int lineIndex,string talkCharaName, string talkCharaList,string backGround) {
+    public void SetStorySaveData(string sceneName,int storyNo, int lineIndex,string talkCharaName, string talkCharaList,string backGround,string bgmName) {
 
+        //ギャラリーなどが実装された場合は、DeleteAllではなく、必要なものだけを削除するように変更しないといけない
         PlayerPrefs.DeleteAll();
 
         saveData_Interruption = 1;
@@ -62,6 +65,8 @@ public class SaveLoadManager : SingletonMonoBehaviour<SaveLoadManager> {
         saveData_TalkCharaName = talkCharaName;
         saveData_TalkCharaList = talkCharaList;
         saveData_BackGround = backGround;
+        saveData_BGMName = bgmName;
+
     }
 
     /// <summary>
@@ -69,6 +74,7 @@ public class SaveLoadManager : SingletonMonoBehaviour<SaveLoadManager> {
     /// </summary>
     public void SetStorySaveData(string sceneName, int storyNo, int lineIndex) {
 
+        //ギャラリーなどが実装された場合は、DeleteAllではなく、必要なものだけを削除するように変更しないといけない
         PlayerPrefs.DeleteAll();
 
         saveData_Interruption = 1;
@@ -135,6 +141,7 @@ public class SaveLoadManager : SingletonMonoBehaviour<SaveLoadManager> {
                 if (saveData_TalkCharaName != "") PlayerPrefs.SetString(SAVE_DATA_TALK_CHARA_NAME, saveData_TalkCharaName);
                 if (saveData_TalkCharaList != "") PlayerPrefs.SetString(SAVE_DATA_TALK_CHARA_LIST, saveData_TalkCharaList);
                 if (saveData_BackGround != "") PlayerPrefs.SetString(SAVE_DATA_BACK_GROUND, saveData_BackGround);
+                if (saveData_BGMName != "") PlayerPrefs.SetString(SAVE_DATA_BGM_NAME, saveData_BGMName);
 
                 break;
 
@@ -162,6 +169,7 @@ public class SaveLoadManager : SingletonMonoBehaviour<SaveLoadManager> {
     /// データを全削除
     /// </summary>
     public void DeleteAllData() {
+        //ギャラリーなどが実装された場合は、DeleteAllではなく、必要なものだけを削除するように変更しないといけない
         PlayerPrefs.DeleteAll();
     }
 

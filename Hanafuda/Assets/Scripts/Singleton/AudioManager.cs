@@ -142,6 +142,22 @@ public class AudioManager : SingletonMonoBehaviour<AudioManager>
 	}
 
     /// <summary>
+    /// BGMが再生中かどうかを取得
+    /// </summary>
+    /// <returns></returns>
+    public bool GetIsPlayBGM() {
+        return this.bgmSource.isPlaying;
+    }
+
+    /// <summary>
+    /// 現在設定されているBGMの名前を取得
+    /// </summary>
+    /// <returns></returns>
+    public string GetBGMName() {
+        return this.bgmSource.clip.name;
+    }
+
+    /// <summary>
     /// BGMを徐々に停止する
     /// </summary>
     public void StopBGM(float interval) {

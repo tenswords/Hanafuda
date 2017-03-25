@@ -128,11 +128,16 @@ public class StoryManager : MonoBehaviour {
         //行数の読み込み
         lineIndex = PlayerPrefs.GetInt(SaveLoadManager.Instance.SAVE_DATA_LINE_INDEX);
 
+        //背景の読み込み
         if (PlayerPrefs.HasKey(SaveLoadManager.Instance.SAVE_DATA_BACK_GROUND)) {
-            //背景の読み込み
             var backGroundName = PlayerPrefs.GetString(SaveLoadManager.Instance.SAVE_DATA_BACK_GROUND);
             commandManager.SetImage(backGroundName, backGround, BACK_GROUND_PATH);
             backGround.color = Color.white;
+        }
+
+        //BGMの読み込み
+        if (PlayerPrefs.HasKey(SaveLoadManager.Instance.SAVE_DATA_BGM_NAME)) {
+            AudioManager.Instance.PlayBGM(SaveLoadManager.Instance.saveData_BGMName, true, 1.0f);
         }
 
         //話しているキャラの読み込み（話しているキャラクター以外を暗くするため）

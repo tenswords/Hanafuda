@@ -70,13 +70,24 @@ public class InterruptionDialogManager : SingletonMonoBehaviour<InterruptionDial
                         foreach (var chara in storyManager.talkCharaDic) {
                             talkCharaList += chara.Key + "、" + chara.Value.sprite.name + ":";
                         }
+
+                        var backGroundName = "";
+                        if(storyManager.backGround.sprite != null) {
+                            backGroundName = storyManager.backGround.sprite.name;
+                        }
+                        var bgmName = "";
+                        if (AudioManager.Instance.GetIsPlayBGM()) {
+                            bgmName = AudioManager.Instance.GetBGMName();
+                        }
+
                         SaveLoadManager.Instance.SetStorySaveData(
                             SceneName.SceneNameManager.SCENE_NAME_STORY,
                             storyManager.storyNo,
                             storyManager.lineIndex,
                             storyManager.talkCharaName,
                             talkCharaList,
-                            storyManager.backGround.sprite.name
+                            backGroundName,
+                            bgmName
                             );
                         break;
                 }

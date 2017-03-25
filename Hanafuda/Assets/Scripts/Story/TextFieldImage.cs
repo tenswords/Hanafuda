@@ -90,6 +90,7 @@ public class TextFieldImage : MonoBehaviour {
                 nextButton.SetActive(false);
                 storyManager.state = StoryManager.STATE.READTEXT;
                 AudioManager.Instance.PlaySE(AudioName.AudioNameManager.SE_SE_NEXTBUTTON);
+                AudioManager.Instance.PlaySE(AudioName.AudioNameManager.SE_SE_NEXTBUTTON);
                 storyManager.CommandNewLine();
                 break;
         }

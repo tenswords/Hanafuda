@@ -328,11 +328,26 @@ public class GetCardField : MonoBehaviour {
                 break;
             case 2:
                 if (!isOno && !isOno_GetCardList) {
+                    //三光を成立状態にする
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.SANKOU);
                     getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
 
                     //成立情報の登録
                     AddEstablishRoleSList(index, searchTextIndex, Role.RoleManager.SANKOU, Role.RoleManager.FLUSH);
+
+                    //雨入四光の成立情報を登録--------
+                    getRoleString_Dic[index][searchTextIndex + 1][0] = Role.RoleManager.YONKOU;
+                    getRoleString_Dic[index][searchTextIndex + 1][1] = Role.RoleManager.REMAINING;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex + 1, Role.RoleManager.YONKOU, Role.RoleManager.REMAINING);
+
+                    //四光の成立情報を登録--------
+                    getRoleString_Dic[index][searchTextIndex + 2][0] = Role.RoleManager.AMEYONKOU;
+                    getRoleString_Dic[index][searchTextIndex + 2][1] = Role.RoleManager.REMAINING;
+
+                    //成立情報の登録
+                    AddEstablishRoleSList(index, searchTextIndex + 2, Role.RoleManager.AMEYONKOU, Role.RoleManager.REMAINING);
 
                 } else {
                     searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
@@ -350,10 +365,20 @@ public class GetCardField : MonoBehaviour {
                 else roleName = Role.RoleManager.AMEYONKOU;
 
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], roleName);
+
                 getRoleString_Dic[index][searchTextIndex][1] = Role.RoleManager.FLUSH;
 
                 //成立情報の登録
                 AddEstablishRoleSList(index, searchTextIndex, roleName, Role.RoleManager.FLUSH);
+
+                //五光の成立情報を登録--------
+                var searchTextIndex_tmp = GetCardListIndex_TargetText(getRoleString_Dic[index], "");
+                getRoleString_Dic[index][searchTextIndex_tmp][0] = Role.RoleManager.GOKOU;
+                getRoleString_Dic[index][searchTextIndex_tmp][1] = Role.RoleManager.REMAINING;
+
+                //成立情報の登録
+                AddEstablishRoleSList(index, searchTextIndex_tmp, Role.RoleManager.GOKOU, Role.RoleManager.REMAINING);
+
                 break;
             case 4:
                 searchTextIndex = GetCardListIndex_TargetText(getRoleString_Dic[index], Role.RoleManager.GOKOU);

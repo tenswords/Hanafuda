@@ -84,8 +84,10 @@ public class CardTouchManager : MonoBehaviour {
                                    FieldManager.STATE.TURN_PLAYER_SELECT_CARD);
 
                     //場のカードの色を明るくする
-                    foreach (var index in player.nonGetCardList_Dic[selectCard]) {
-                        fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], true);
+                    if (player.nonGetCardList_Dic.Count > 0) {
+                        foreach (var index in player.nonGetCardList_Dic[selectCard]) {
+                            fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], true);
+                        }
                     }
 
                     //カードエフェクトを消す
@@ -177,8 +179,10 @@ public class CardTouchManager : MonoBehaviour {
         cardManager.SetCardSortingLayer(selectCard.transform.GetChild(0).gameObject, SortingLayer.SortingLayerManager.PLAYER_HAND_FORE);
 
         //場の取れないカードを暗くさせる
-        foreach (var index in player.nonGetCardList_Dic[selectCard]) {
-            fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], false);
+        if(player.nonGetCardList_Dic.Count > 0) {
+            foreach (var index in player.nonGetCardList_Dic[selectCard]) {
+                fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], false);
+            }
         }
 
         //場のカードの取れるカードが1枚もない場合、場のコライダーをON
@@ -199,9 +203,12 @@ public class CardTouchManager : MonoBehaviour {
             cardManager.SetCardSortingLayer(oldSelectCard, SortingLayer.SortingLayerManager.PLAYER_HAND);
             cardManager.SetCardSortingLayer(oldSelectCard.transform.GetChild(0).gameObject, SortingLayer.SortingLayerManager.PLAYER_HAND);
 
-            foreach (var index in player.nonGetCardList_Dic[oldSelectCard]) {
-                fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], true);
+            if (player.nonGetCardList_Dic.Count > 0) {
+                foreach (var index in player.nonGetCardList_Dic[oldSelectCard]) {
+                    fieldManager.SetFieldCardColor(field.fieldCard_Dic[index], true);
+                }
             }
+
 
         }
     }
