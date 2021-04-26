@@ -69,8 +69,8 @@ public class Result : MonoBehaviour {
 
     public void SetFlushListText() {
 
-        var establishRoleName = establishRoleText[0].transform.FindChild("EstablishRoleName").GetComponent<Text>();
-        var establishRoleScore = establishRoleText[0].transform.FindChild("EstablishRoleScore").GetComponent<Text>();
+        var establishRoleName = establishRoleText[0].transform.Find("EstablishRoleName").GetComponent<Text>();
+        var establishRoleScore = establishRoleText[0].transform.Find("EstablishRoleScore").GetComponent<Text>();
 
         establishRoleName.text = "";
         establishRoleScore.text = "";
@@ -88,8 +88,8 @@ public class Result : MonoBehaviour {
 
                 for (int i=0;i< sortList.Length; i++) {
                     if (i == 5) {
-                        establishRoleName = establishRoleText[1].transform.FindChild("EstablishRoleName").GetComponent<Text>();
-                        establishRoleScore = establishRoleText[1].transform.FindChild("EstablishRoleScore").GetComponent<Text>();
+                        establishRoleName = establishRoleText[1].transform.Find("EstablishRoleName").GetComponent<Text>();
+                        establishRoleScore = establishRoleText[1].transform.Find("EstablishRoleScore").GetComponent<Text>();
 
                         establishRoleName.text = "";
                         establishRoleScore.text = "";
@@ -119,8 +119,8 @@ public class Result : MonoBehaviour {
 
                 for (int i = 0; i < sortList.Length; i++) {
                     if (i == 5) {
-                        establishRoleName = establishRoleText[1].transform.FindChild("EstablishRoleName").GetComponent<Text>();
-                        establishRoleScore = establishRoleText[1].transform.FindChild("EstablishRoleScore").GetComponent<Text>();
+                        establishRoleName = establishRoleText[1].transform.Find("EstablishRoleName").GetComponent<Text>();
+                        establishRoleScore = establishRoleText[1].transform.Find("EstablishRoleScore").GetComponent<Text>();
 
                         establishRoleName.text = "";
                         establishRoleScore.text = "";
